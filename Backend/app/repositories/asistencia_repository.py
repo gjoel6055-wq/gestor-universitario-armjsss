@@ -30,6 +30,7 @@ def registrar_asistencia(qr_token):
 
         if not resultado:
             return "QR invalido"
+
         fecha_expiracion = resultado['qr_expiracion']
         fecha_actual = datetime.now()
 

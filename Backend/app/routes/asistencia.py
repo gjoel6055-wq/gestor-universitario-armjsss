@@ -1,17 +1,17 @@
-from app.repositories.asistencia_repository import registrar_asistencia
+from app.services.qr_service import procesar_escaneo_qr
 from flask import Blueprint, request, jsonify
 
 asistencia_bp = Blueprint('asistencia', __name__)
 
 @asistencia_bp.route('/asistencia/validar/<string:token>', methods=['POST'])
 def validar_asistencia(token):
-    situacion = registrar_asistencia(token)
+    situacion = procesar_escaneo_qr(token)
 
     if situacion == 'QR invalido':
         return jsonify({'error':'El qr escaneado es invalido'}), 404
 
     if situacion == 'token expirado':
-        return jsonify({'error':'El codigo escaneado ya expiró, pruebe con un codigo vigente'}), 400
+        return jsonify({'error':'El codigo escaneado ya expiró, pruebe con un codigo vigente'}), 410
 
     if situacion == True:
         return jsonify({'mensaje':'Se ha registrado su asistencia con exito.'}), 201
