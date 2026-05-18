@@ -1,5 +1,5 @@
-from app.repositories.material_repository import crear_material_db
 from flask import Blueprint, request, jsonify
+from app.services.material_service import registrar_nuevo_material
 
 material_bp = Blueprint('material', __name__)
 
@@ -9,14 +9,14 @@ def agregar_material():
     
     titulo = datos.get('titulo')
     descripcion = datos.get('descripcion')
-    url_archivo = datos.get('url_archivo')
-    curso_id = datos.get('curso_id')
+    url = datos.get('url')        
+    curso_id = datos.get('cursoId') 
     
     if not titulo or not curso_id:
         return jsonify({'error': 'El título y el ID del curso son obligatorios'}), 400
         
     try:
-        nuevo_id = crear_material_db(titulo, descripcion, url_archivo, curso_id)
+        nuevo_id = registrar_nuevo_material(titulo, descripcion, url, curso_id)
         
         return jsonify({
             'mensaje': 'Se ha registrado el material de estudio con éxito.',
