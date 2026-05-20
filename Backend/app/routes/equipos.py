@@ -143,6 +143,27 @@ def agregar_evaluacion(equipo_id):
         return jsonify({'error': str(e)}), 500
 
 
+@equipos_bp.route('/equipos/<int:equipo_id>', methods=['PATCH'])
+def actualizar_parcial_equipo(equipo_id):
+    try:
+        datos = request.get_json()
+        if not datos:
+            return jsonify({'error': 'El cuerpo de la solicitud no puede estar vacío'}), 400
+        equipo = equipo_service.actualizar_parcial(equipo_id, datos)
+        return jsonify(equipo), 200
+    except ValueError as e:
+        mensaje = str(e).lower()
+        if 'no encontrado' in mensaje:
+            codigo = 404
+        elif 'ya existe' in mensaje:
+            codigo = 409
+        else:
+            codigo = 400
+        return jsonify({'error': str(e)}), codigo
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+
 @equipos_bp.route('/equipos/<int:equipo_id>/evaluaciones/<int:evaluacion_id>', methods=['DELETE'])
 def quitar_evaluacion(equipo_id, evaluacion_id):
     try:
