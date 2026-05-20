@@ -1,11 +1,17 @@
+import mysql.connector
 from app.db import get_db_connection
+
 
 def obtener_todos():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     try:
         cursor.execute(
-            'SELECT * FROM cursos ORDER BY anio DESC, cuatrimestre DESC'
+            '''
+            SELECT * FROM cursos
+            WHERE deleted_at IS NULL
+            ORDER BY anio DESC, cuatrimestre DESC
+            '''
         )
         return cursor.fetchall()
     except Exception as e:
@@ -21,42 +27,16 @@ def obtener_por_id(curso_id):
     cursor = conn.cursor(dictionary=True)
     try:
         cursor.execute(
-            'SELECT * FROM cursos WHERE curso_id = %s',
+            '''
+            SELECT * FROM cursos
+            WHERE curso_id = %s
+            AND deleted_at IS NULL
+            ''',
             (curso_id,)
         )
         return cursor.fetchone()
     except Exception as e:
         print(f"Error al obtener curso {curso_id}: {e}")
-        return None
-    finally:
-        cursor.close()
-        conn.close()
-
-
-def buscar_duplicado(nombre, cuatrimestre, anio, excluir_id=None):
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    try:
-        if excluir_id:
-            cursor.execute(
-                '''
-                SELECT * FROM cursos
-                WHERE nombre = %s AND cuatrimestre = %s AND anio = %s
-                AND curso_id != %s
-                ''',
-                (nombre, cuatrimestre, anio, excluir_id)
-            )
-        else:
-            cursor.execute(
-                '''
-                SELECT * FROM cursos
-                WHERE nombre = %s AND cuatrimestre = %s AND anio = %s
-                ''',
-                (nombre, cuatrimestre, anio)
-            )
-        return cursor.fetchone()
-    except Exception as e:
-        print(f"Error al buscar duplicado: {e}")
         return None
     finally:
         cursor.close()
@@ -77,6 +57,13 @@ def insertar(datos):
         conn.commit()
         nuevo_id = cursor.lastrowid
         return obtener_por_id(nuevo_id)
+    except mysql.connector.errors.IntegrityError as e:
+        conn.rollback()
+        if e.errno == 1062:
+            raise ValueError(
+                f"Ya existe un curso '{datos['nombre']}' para el {datos['cuatrimestre']} de {datos['anio']}"
+            )
+        raise ValueError(f"Error de integridad: {e}")
     except Exception as e:
         conn.rollback()
         print(f"Error al insertar curso: {e}")
@@ -95,11 +82,19 @@ def actualizar(curso_id, datos):
             UPDATE cursos
             SET nombre = %s, cuatrimestre = %s, anio = %s, descripcion = %s
             WHERE curso_id = %s
+            AND deleted_at IS NULL
             ''',
             (datos['nombre'], datos['cuatrimestre'], datos['anio'], datos.get('descripcion'), curso_id)
         )
         conn.commit()
         return obtener_por_id(curso_id)
+    except mysql.connector.errors.IntegrityError as e:
+        conn.rollback()
+        if e.errno == 1062:
+            raise ValueError(
+                f"Ya existe un curso '{datos['nombre']}' para el {datos['cuatrimestre']} de {datos['anio']}"
+            )
+        raise ValueError(f"Error de integridad: {e}")
     except Exception as e:
         conn.rollback()
         print(f"Error al actualizar curso {curso_id}: {e}")
@@ -114,7 +109,12 @@ def eliminar(curso_id):
     cursor = conn.cursor()
     try:
         cursor.execute(
-            'DELETE FROM cursos WHERE curso_id = %s',
+            '''
+            UPDATE cursos
+            SET deleted_at = NOW()
+            WHERE curso_id = %s
+            AND deleted_at IS NULL
+            ''',
             (curso_id,)
         )
         conn.commit()
