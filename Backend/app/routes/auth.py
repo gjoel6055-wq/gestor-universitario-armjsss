@@ -1,7 +1,32 @@
 from flask import Blueprint, request, jsonify, session
 from app.services.auth_service import procesar_login, crear_nuevo_usuario
+from functools import wraps
 
 auth_bp = Blueprint('auth', __name__)
+
+def login_requerido(ruta):
+    @wraps(ruta)
+    def funcion_protegida(*args, **kwargs):
+        if 'email' not in session:
+            return jsonify({'error': 'Acceso denegado. Por favor, inicie sesión.'}), 401
+        return ruta(*args, **kwargs)
+
+    return funcion_protegida
+
+def rol_requerido(rol_necesario):
+    def decorador(ruta):
+        @wraps(ruta)
+        def funcion_protegida(*args, **kwargs):
+            rol_usuario = session.get('rol')
+
+            if rol_usuario != rol_necesario:
+                return jsonify({'error': 'No tenés permisos para acceder a esta función.'}), 403
+
+            return ruta(*args, **kwargs)
+
+        return funcion_protegida
+
+    return decorador
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
@@ -45,7 +70,7 @@ def register():
     return jsonify({'error': 'Ocurrio un error al crear el usuario, intentelo mas tarde.'}), 500
 
 
-@auth_bp.route('/logout', methods=['[POST'])
+@auth_bp.route('/logout', methods=['POST'])
 def logout():
     session.clear()
 
