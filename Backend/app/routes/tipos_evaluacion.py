@@ -10,4 +10,4 @@ def crear_tipo_evaluacion():
     if not nombre:
         return jsonify({'error': 'El nombre del tipo de evaluación es requerido.'}), 400
         
-    return jsonify({'mensaje': f'Tipo de evaluación "{nombre}" creado con éxito.'}), 201
+    return jsonify({'mensaje': f'Tipo de evaluación "{nombre}" creado con éxito.'}), 201 
