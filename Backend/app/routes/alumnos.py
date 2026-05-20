@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.services.alumno_service import (
-    listar_alumnos,
+    obtener_todos_alumnos,
     obtener_alumno,
     crear_alumno,
     actualizar_alumno,
@@ -11,7 +11,7 @@ alumnos_bp = Blueprint('alumnos', __name__)
 
 @alumnos_bp.route('/alumnos', methods=['GET'])
 def obtener_alumnos():
-    alumnos = listar_alumnos()
+    alumnos = obtener_todos_alumnos()
     return jsonify(alumnos), 200
 
 @alumnos_bp.route('/alumnos/<int:id>', methods=['GET'])
