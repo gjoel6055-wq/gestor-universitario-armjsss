@@ -1,18 +1,29 @@
 import mysql.connector
 from app.db import get_db_connection
 
-
+# EQUIPOS
 def obtener_todos(curso_id=None):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     try:
         if curso_id:
             cursor.execute(
-                'SELECT * FROM equipos WHERE curso_id = %s ORDER BY nombre',
+                '''
+                SELECT * FROM equipos
+                WHERE curso_id = %s
+                AND deleted_at IS NULL
+                ORDER BY nombre
+                ''',
                 (curso_id,)
             )
         else:
-            cursor.execute('SELECT * FROM equipos ORDER BY nombre')
+            cursor.execute(
+                '''
+                SELECT * FROM equipos
+                WHERE deleted_at IS NULL
+                ORDER BY nombre
+                '''
+            )
         return cursor.fetchall()
     except Exception as e:
         print(f"Error al obtener equipos: {e}")
@@ -32,6 +43,7 @@ def obtener_por_id(equipo_id):
             FROM equipos e
             JOIN cursos c ON c.curso_id = e.curso_id
             WHERE e.equipo_id = %s
+            AND e.deleted_at IS NULL
             ''',
             (equipo_id,)
         )
@@ -82,7 +94,12 @@ def actualizar(equipo_id, datos):
     cursor = conn.cursor()
     try:
         cursor.execute(
-            'UPDATE equipos SET nombre = %s WHERE equipo_id = %s',
+            '''
+            UPDATE equipos
+            SET nombre = %s
+            WHERE equipo_id = %s
+            AND deleted_at IS NULL
+            ''',
             (datos['nombre'], equipo_id)
         )
         conn.commit()
@@ -107,19 +124,37 @@ def eliminar(equipo_id):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        # Marca el equipo como eliminado
         cursor.execute(
-            'DELETE FROM equipos WHERE equipo_id = %s',
+            '''
+            UPDATE equipos
+            SET deleted_at = NOW()
+            WHERE equipo_id = %s
+            AND deleted_at IS NULL
+            ''',
+            (equipo_id,)
+        )
+        # Marca las relaciones pivot como eliminadas también
+        cursor.execute(
+            '''
+            UPDATE equipos_alumnos
+            SET deleted_at = NOW()
+            WHERE equipo_id = %s
+            AND deleted_at IS NULL
+            ''',
+            (equipo_id,)
+        )
+        cursor.execute(
+            '''
+            UPDATE equipos_evaluaciones
+            SET deleted_at = NOW()
+            WHERE equipo_id = %s
+            AND deleted_at IS NULL
+            ''',
             (equipo_id,)
         )
         conn.commit()
         return True
-    except mysql.connector.errors.IntegrityError as e:
-        conn.rollback()
-        if e.errno == 1451:
-            raise ValueError(
-                'No se puede eliminar el equipo porque tiene alumnos o evaluaciones asociadas'
-            )
-        raise ValueError(f"Error de integridad: {e}")
     except Exception as e:
         conn.rollback()
         print(f"Error al eliminar equipo {equipo_id}: {e}")
@@ -128,8 +163,8 @@ def eliminar(equipo_id):
         cursor.close()
         conn.close()
 
-# Pivote equipos-alumnos
 
+# PIVOT EQUIPOS_ALUMNOS
 def obtener_alumnos_del_equipo(equipo_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -146,6 +181,7 @@ def obtener_alumnos_del_equipo(equipo_id):
             JOIN alumnos  a ON a.padron     = ea.padron
             JOIN usuarios u ON u.usuario_id = a.usuario_id
             WHERE ea.equipo_id = %s
+            AND ea.deleted_at IS NULL
             ORDER BY u.apellido, u.nombre
             ''',
             (equipo_id,)
@@ -154,6 +190,28 @@ def obtener_alumnos_del_equipo(equipo_id):
     except Exception as e:
         print(f"Error al obtener alumnos del equipo {equipo_id}: {e}")
         return []
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def alumno_en_equipo(equipo_id, padron):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            '''
+            SELECT 1 FROM equipos_alumnos
+            WHERE equipo_id = %s
+            AND padron = %s
+            AND deleted_at IS NULL
+            ''',
+            (equipo_id, padron)
+        )
+        return cursor.fetchone() is not None
+    except Exception as e:
+        print(f"Error al verificar alumno en equipo: {e}")
+        return False
     finally:
         cursor.close()
         conn.close()
@@ -190,7 +248,13 @@ def eliminar_alumno(equipo_id, padron):
     cursor = conn.cursor()
     try:
         cursor.execute(
-            'DELETE FROM equipos_alumnos WHERE equipo_id = %s AND padron = %s',
+            '''
+            UPDATE equipos_alumnos
+            SET deleted_at = NOW()
+            WHERE equipo_id = %s
+            AND padron = %s
+            AND deleted_at IS NULL
+            ''',
             (equipo_id, padron)
         )
         conn.commit()
@@ -204,8 +268,7 @@ def eliminar_alumno(equipo_id, padron):
         conn.close()
 
 
-# Pivote equipos-evaluaciones
-
+# PIVOT EQUIPOS_EVALUACIONES
 def obtener_evaluaciones_del_equipo(equipo_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -222,6 +285,8 @@ def obtener_evaluaciones_del_equipo(equipo_id):
             JOIN evaluaciones     ev ON ev.evaluacion_id = ee.evaluacion_id
             JOIN tipos_evaluacion te ON te.tipo_id       = ev.tipo_id
             WHERE ee.equipo_id = %s
+            AND ee.deleted_at IS NULL
+            AND ev.deleted_at IS NULL
             ORDER BY ev.fecha
             ''',
             (equipo_id,)
@@ -230,6 +295,28 @@ def obtener_evaluaciones_del_equipo(equipo_id):
     except Exception as e:
         print(f"Error al obtener evaluaciones del equipo {equipo_id}: {e}")
         return []
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def evaluacion_en_equipo(equipo_id, evaluacion_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            '''
+            SELECT 1 FROM equipos_evaluaciones
+            WHERE equipo_id = %s
+            AND evaluacion_id = %s
+            AND deleted_at IS NULL
+            ''',
+            (equipo_id, evaluacion_id)
+        )
+        return cursor.fetchone() is not None
+    except Exception as e:
+        print(f"Error al verificar evaluacion en equipo: {e}")
+        return False
     finally:
         cursor.close()
         conn.close()
@@ -264,11 +351,18 @@ def insertar_evaluacion(equipo_id, evaluacion_id):
 
 
 def eliminar_evaluacion(equipo_id, evaluacion_id):
+    # Borrado lógico en la pivot
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
-            'DELETE FROM equipos_evaluaciones WHERE equipo_id = %s AND evaluacion_id = %s',
+            '''
+            UPDATE equipos_evaluaciones
+            SET deleted_at = NOW()
+            WHERE equipo_id = %s
+            AND evaluacion_id = %s
+            AND deleted_at IS NULL
+            ''',
             (equipo_id, evaluacion_id)
         )
         conn.commit()
