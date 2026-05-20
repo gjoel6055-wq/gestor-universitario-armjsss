@@ -59,12 +59,40 @@ def actualizar_curso(curso_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@cursos_bp.route('/cursos/<int:curso_id>', methods=['PATCH'])
+def actualizar_parcial_curso(curso_id):
+    try:
+        datos = request.get_json()
+        if not datos:
+            return jsonify({'error': 'El cuerpo de la solicitud no puede estar vacío'}), 400
+        curso = curso_service.actualizar_parcial(curso_id, datos)
+        return jsonify(curso), 200
+    except ValueError as e:
+        mensaje = str(e).lower()
+        if 'no encontrado' in mensaje:
+            codigo = 404
+        elif 'ya existe' in mensaje:
+            codigo = 409
+        else:
+            codigo = 400
+        return jsonify({'error': str(e)}), codigo
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+    
 @cursos_bp.route('/cursos/<int:curso_id>', methods=['DELETE'])
 def eliminar_curso(curso_id):
     try:
         curso_service.eliminar(curso_id)
         return jsonify({'mensaje': f'Curso {curso_id} eliminado correctamente'}), 200
     except ValueError as e:
-        return jsonify({'error': str(e)}), 404
+        mensaje = str(e).lower()
+        if 'no encontrado' in mensaje:
+            codigo = 404
+        elif 'asociados' in mensaje:
+            codigo = 409
+        else:
+            codigo = 400
+        return jsonify({'error': str(e)}), codigo
     except Exception as e:
         return jsonify({'error': str(e)}), 500
