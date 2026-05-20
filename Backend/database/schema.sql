@@ -13,7 +13,8 @@ CREATE TABLE usuarios (
     nombre VARCHAR(100) NOT NULL,
     apellido VARCHAR(100) NOT NULL,
     rol ENUM('alumno', 'docente') NOT NULL,
-    fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP
+    fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
+    deleted_at DATETIME DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS cursos (
@@ -22,14 +23,16 @@ CREATE TABLE IF NOT EXISTS cursos (
     cuatrimestre ENUM('1C', '2C') NOT NULL,
     anio INT NOT NULL,
     descripcion TEXT,
-    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    deleted_at DATETIME DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS tipos_evaluacion (
     tipo_id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     descripcion TEXT,
-    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    deleted_at DATETIME DEFAULT NULL
 );
 
 -- =========================================================================
@@ -40,6 +43,7 @@ CREATE TABLE IF NOT EXISTS docentes (
     legajo INT PRIMARY KEY,
     usuario_id INT NOT NULL UNIQUE,
     departamento VARCHAR(100),
+    deleted_at DATETIME DEFAULT NULL,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id) ON DELETE CASCADE
 );
 
@@ -47,9 +51,11 @@ CREATE TABLE IF NOT EXISTS alumnos (
     padron INT PRIMARY KEY,
     usuario_id INT NOT NULL UNIQUE,
     abandono TINYINT(1) DEFAULT 0,
+    deleted_at DATETIME DEFAULT NULL,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id) ON DELETE CASCADE
 );
 
+-- log_actividad no lleva deleted_at: es un registro de auditoría inmutable
 CREATE TABLE IF NOT EXISTS log_actividad (
     log_id INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT,
@@ -71,6 +77,7 @@ CREATE TABLE IF NOT EXISTS evaluaciones (
     fecha DATE NOT NULL,
     peso DECIMAL(5,2) NOT NULL,
     descripcion TEXT,
+    deleted_at DATETIME DEFAULT NULL,
     FOREIGN KEY (tipo_id) REFERENCES tipos_evaluacion(tipo_id),
     FOREIGN KEY (curso_id) REFERENCES cursos(curso_id) ON DELETE CASCADE
 );
@@ -80,6 +87,7 @@ CREATE TABLE IF NOT EXISTS equipos (
     curso_id INT NOT NULL,
     nombre VARCHAR(100) NOT NULL,
     fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    deleted_at DATETIME DEFAULT NULL,
     FOREIGN KEY (curso_id) REFERENCES cursos(curso_id) ON DELETE CASCADE
 );
 
@@ -93,6 +101,7 @@ CREATE TABLE IF NOT EXISTS materiales (
     publico TINYINT(1) DEFAULT 1,
     fecha_subida DATETIME DEFAULT CURRENT_TIMESTAMP,
     subido_por INT,
+    deleted_at DATETIME DEFAULT NULL,
     FOREIGN KEY (curso_id) REFERENCES cursos(curso_id) ON DELETE CASCADE,
     FOREIGN KEY (subido_por) REFERENCES usuarios(usuario_id) ON DELETE SET NULL
 );
@@ -108,10 +117,12 @@ CREATE TABLE IF NOT EXISTS notas (
     nota DECIMAL(4,2) NOT NULL,
     fecha_carga DATETIME DEFAULT CURRENT_TIMESTAMP,
     observacion TEXT,
+    deleted_at DATETIME DEFAULT NULL,
     FOREIGN KEY (padron) REFERENCES alumnos(padron) ON DELETE CASCADE,
     FOREIGN KEY (evaluacion_id) REFERENCES evaluaciones(evaluacion_id) ON DELETE CASCADE
 );
 
+-- asistencias no lleva deleted_at: son registros históricos inmutables
 CREATE TABLE IF NOT EXISTS asistencias (
     asistencia_id INT AUTO_INCREMENT PRIMARY KEY,
     padron INT NOT NULL,
@@ -128,6 +139,7 @@ CREATE TABLE IF NOT EXISTS equipos_alumnos (
     equipo_id INT NOT NULL,
     padron INT NOT NULL,
     fecha_alta DATETIME DEFAULT CURRENT_TIMESTAMP,
+    deleted_at DATETIME DEFAULT NULL,
     FOREIGN KEY (equipo_id) REFERENCES equipos(equipo_id) ON DELETE CASCADE,
     FOREIGN KEY (padron) REFERENCES alumnos(padron) ON DELETE CASCADE,
     UNIQUE(equipo_id, padron)
@@ -137,6 +149,7 @@ CREATE TABLE IF NOT EXISTS equipos_evaluaciones (
     equipo_evaluacion_id INT AUTO_INCREMENT PRIMARY KEY,
     equipo_id INT NOT NULL,
     evaluacion_id INT NOT NULL,
+    deleted_at DATETIME DEFAULT NULL,
     FOREIGN KEY (equipo_id) REFERENCES equipos(equipo_id) ON DELETE CASCADE,
     FOREIGN KEY (evaluacion_id) REFERENCES evaluaciones(evaluacion_id) ON DELETE CASCADE,
     UNIQUE(equipo_id, evaluacion_id)
