@@ -27,6 +27,17 @@ def actualizar(equipo_id, datos):
     return equipo_repository.actualizar(equipo_id, datos)
 
 
+def actualizar_parcial(equipo_id, datos):
+    equipo_actual = obtener_por_id(equipo_id)
+
+    # Mezclar datos actuales con los nuevos
+    datos_actualizados = {
+        'nombre': datos.get('nombre', equipo_actual['nombre'])
+    }
+
+    return equipo_repository.actualizar(equipo_id, datos_actualizados)
+
+
 def eliminar(equipo_id):
     obtener_por_id(equipo_id)
     equipo_repository.eliminar(equipo_id)
