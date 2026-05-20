@@ -1,7 +1,7 @@
-from app.db import get_db_connection 
+from app.db import get_connection 
 
 def obtener_docentes_db():
-    conexion = get_db_connection()
+    conexion = get_connection()
     cursor = conexion.cursor(dictionary=True) 
     
     try:
@@ -20,7 +20,7 @@ def obtener_docentes_db():
         conexion.close()
 
 def crear_docente_db(legajo, usuario_id, departamento):
-    conexion = get_db_connection()
+    conexion = get_connection()
     cursor = conexion.cursor()
     
     try:
@@ -37,7 +37,7 @@ def crear_docente_db(legajo, usuario_id, departamento):
         conexion.close()
 
 def eliminar_docente_db(legajo):
-    conexion = get_db_connection()
+    conexion = get_connection()
     cursor = conexion.cursor()
     
     try:

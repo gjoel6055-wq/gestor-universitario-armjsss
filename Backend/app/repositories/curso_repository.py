@@ -1,9 +1,9 @@
 import mysql.connector
-from app.db import get_db_connection
+from app.db import get_connection
 
 
 def obtener_todos():
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     try:
         cursor.execute(
@@ -23,7 +23,7 @@ def obtener_todos():
 
 
 def obtener_por_id(curso_id):
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     try:
         cursor.execute(
@@ -44,7 +44,7 @@ def obtener_por_id(curso_id):
 
 
 def insertar(datos):
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -74,7 +74,7 @@ def insertar(datos):
 
 
 def actualizar(curso_id, datos):
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -105,7 +105,7 @@ def actualizar(curso_id, datos):
 
 
 def eliminar(curso_id):
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(

@@ -1,9 +1,9 @@
 import mysql.connector
-from app.db import get_db_connection
+from app.db import get_connection
 
 # EQUIPOS
 def obtener_todos(curso_id=None):
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     try:
         if curso_id:
@@ -34,7 +34,7 @@ def obtener_todos(curso_id=None):
 
 
 def obtener_por_id(equipo_id):
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     try:
         cursor.execute(
@@ -61,7 +61,7 @@ def obtener_por_id(equipo_id):
 
 
 def insertar(datos):
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -90,7 +90,7 @@ def insertar(datos):
 
 
 def actualizar(equipo_id, datos):
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -121,7 +121,7 @@ def actualizar(equipo_id, datos):
 
 
 def eliminar(equipo_id):
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         # Marca el equipo como eliminado
@@ -166,7 +166,7 @@ def eliminar(equipo_id):
 
 # PIVOT EQUIPOS_ALUMNOS
 def obtener_alumnos_del_equipo(equipo_id):
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     try:
         cursor.execute(
@@ -196,7 +196,7 @@ def obtener_alumnos_del_equipo(equipo_id):
 
 
 def alumno_en_equipo(equipo_id, padron):
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     try:
         cursor.execute(
@@ -218,7 +218,7 @@ def alumno_en_equipo(equipo_id, padron):
 
 
 def insertar_alumno(equipo_id, padron):
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -244,7 +244,7 @@ def insertar_alumno(equipo_id, padron):
 
 
 def eliminar_alumno(equipo_id, padron):
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -270,7 +270,7 @@ def eliminar_alumno(equipo_id, padron):
 
 # PIVOT EQUIPOS_EVALUACIONES
 def obtener_evaluaciones_del_equipo(equipo_id):
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     try:
         cursor.execute(
@@ -301,7 +301,7 @@ def obtener_evaluaciones_del_equipo(equipo_id):
 
 
 def evaluacion_en_equipo(equipo_id, evaluacion_id):
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     try:
         cursor.execute(
@@ -323,7 +323,7 @@ def evaluacion_en_equipo(equipo_id, evaluacion_id):
 
 
 def insertar_evaluacion(equipo_id, evaluacion_id):
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -352,7 +352,7 @@ def insertar_evaluacion(equipo_id, evaluacion_id):
 
 def eliminar_evaluacion(equipo_id, evaluacion_id):
     # Borrado lógico en la pivot
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
