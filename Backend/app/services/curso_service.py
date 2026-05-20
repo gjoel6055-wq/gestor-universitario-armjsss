@@ -13,66 +13,51 @@ def obtener_por_id(curso_id):
 
 
 def crear(datos):
-    # Validar campos obligatorios
     if not datos.get('nombre'):
         raise ValueError('El nombre es obligatorio')
     if not datos.get('cuatrimestre'):
         raise ValueError('El cuatrimestre es obligatorio')
     if not datos.get('anio'):
         raise ValueError('El año es obligatorio')
-
-    # Validar que cuatrimestre sea 1C o 2C
     if datos['cuatrimestre'] not in ('1C', '2C'):
         raise ValueError('El cuatrimestre debe ser 1C o 2C')
-
-    # Validar que anio sea un número razonable
     anio = datos['anio']
     if not isinstance(anio, int) or anio < 2000 or anio > 2100:
-        raise ValueError('El año debe ser un número válido')
-
-    # Verificar si ya existe un curso con el mismo nombre, cuatrimestre y año → 409
-    curso_existente = curso_repository.buscar_duplicado(
-        datos['nombre'],
-        datos['cuatrimestre'],
-        datos['anio']
-    )
-    if curso_existente:
-        raise ValueError(
-            f"Ya existe un curso '{datos['nombre']}' para el {datos['cuatrimestre']} de {datos['anio']}"
-        )
-
+        raise ValueError('El año debe ser un número válido entre 2000 y 2100')
     return curso_repository.insertar(datos)
 
 
 def actualizar(curso_id, datos):
-    # Verificar que el curso existe
     obtener_por_id(curso_id)
-
-    # Validar campos obligatorios
     if not datos.get('nombre'):
         raise ValueError('El nombre es obligatorio')
     if not datos.get('cuatrimestre'):
         raise ValueError('El cuatrimestre es obligatorio')
     if not datos.get('anio'):
         raise ValueError('El año es obligatorio')
-
-    # Validar cuatrimestre
     if datos['cuatrimestre'] not in ('1C', '2C'):
         raise ValueError('El cuatrimestre debe ser 1C o 2C')
-
-    # Verificar duplicado excluyendo el curso actual
-    curso_existente = curso_repository.buscar_duplicado(
-        datos['nombre'],
-        datos['cuatrimestre'],
-        datos['anio'],
-        excluir_id=curso_id
-    )
-    if curso_existente:
-        raise ValueError(
-            f"Ya existe un curso '{datos['nombre']}' para el {datos['cuatrimestre']} de {datos['anio']}"
-        )
-
     return curso_repository.actualizar(curso_id, datos)
+
+def actualizar_parcial(curso_id, datos):
+    curso_actual = obtener_por_id(curso_id)
+
+    if 'cuatrimestre' in datos and datos['cuatrimestre'] not in ('1C', '2C'):
+        raise ValueError('El cuatrimestre debe ser 1C o 2C')
+
+    if 'anio' in datos:
+        anio = datos['anio']
+        if not isinstance(anio, int) or anio < 2000 or anio > 2100:
+            raise ValueError('El año debe ser un número válido entre 2000 y 2100')
+
+    datos_actualizados = {
+        'nombre':       datos.get('nombre',       curso_actual['nombre']),
+        'cuatrimestre': datos.get('cuatrimestre', curso_actual['cuatrimestre']),
+        'anio':         datos.get('anio',         curso_actual['anio']),
+        'descripcion':  datos.get('descripcion',  curso_actual['descripcion'])
+    }
+
+    return curso_repository.actualizar(curso_id, datos_actualizados)
 
 
 def eliminar(curso_id):
