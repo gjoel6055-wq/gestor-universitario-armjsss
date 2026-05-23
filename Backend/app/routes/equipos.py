@@ -32,6 +32,12 @@ def crear_equipo():
         if not datos:
             return jsonify({'error': 'El cuerpo de la solicitud no puede estar vacío'}), 400
         equipo = equipo_service.crear(datos)
+
+        ip_usuario = request.remote_addr
+        usuario_id = session.get('usuario_id')
+        accion = "Creó un nuevo equipo"
+        registrar_log(usuario_id, accion, ip_usuario)
+
         return jsonify(equipo), 201
     except ValueError as e:
         mensaje = str(e).lower()
@@ -53,6 +59,12 @@ def actualizar_equipo(equipo_id):
         if not datos:
             return jsonify({'error': 'El cuerpo de la solicitud no puede estar vacío'}), 400
         equipo = equipo_service.actualizar(equipo_id, datos)
+
+        ip_usuario = request.remote_addr
+        usuario_id = session.get('usuario_id')
+        accion = f"Actualizó por completo el equipo de ID: {equipo_id}"
+        registrar_log(usuario_id, accion, ip_usuario)
+
         return jsonify(equipo), 200
     except ValueError as e:
         mensaje = str(e).lower()
@@ -71,6 +83,12 @@ def actualizar_equipo(equipo_id):
 def eliminar_equipo(equipo_id):
     try:
         equipo_service.eliminar(equipo_id)
+
+        ip_usuario = request.remote_addr
+        usuario_id = session.get('usuario_id')
+        accion = f"Eliminó el equipo ID: {equipo_id}"
+        registrar_log(usuario_id, accion, ip_usuario)
+
         return jsonify({'mensaje': f'Equipo {equipo_id} eliminado correctamente'}), 200
     except ValueError as e:
         mensaje = str(e).lower()

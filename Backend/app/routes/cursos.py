@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.services import curso_service
+from app.services import curso_service, log_service
 
 cursos_bp = Blueprint('cursos', __name__)
 
@@ -31,6 +31,12 @@ def crear_curso():
         if not datos:
             return jsonify({'error': 'El cuerpo de la solicitud no puede estar vacío'}), 400
         curso = curso_service.crear(datos)
+
+        ip_usuario = request.remote_addr
+        usuario_id = session.get('usuario_id')
+        accion = "Creó un curso nuevo"
+        registrar_log(usuario_id, accion, ip_usuario)
+
         return jsonify(curso), 201
     except ValueError as e:
         codigo = 409 if 'ya existe' in str(e).lower() else 400
@@ -46,6 +52,12 @@ def actualizar_curso(curso_id):
         if not datos:
             return jsonify({'error': 'El cuerpo de la solicitud no puede estar vacío'}), 400
         curso = curso_service.actualizar(curso_id, datos)
+
+        ip_usuario = request.remote_addr
+        usuario_id = session.get('usuario_id')
+        accion = f"Actualizó completamente el curso con ID: {curso_id}"
+        registrar_log(usuario_id, accion, ip_usuario)
+
         return jsonify(curso), 200
     except ValueError as e:
         mensaje = str(e).lower()
@@ -66,6 +78,12 @@ def actualizar_parcial_curso(curso_id):
         if not datos:
             return jsonify({'error': 'El cuerpo de la solicitud no puede estar vacío'}), 400
         curso = curso_service.actualizar_parcial(curso_id, datos)
+
+        ip_usuario = request.remote_addr
+        usuario_id = session.get('usuario_id')
+        accion = f"Modificó el curso con ID: {curso_id}"
+        registrar_log(usuario_id, accion, ip_usuario)
+
         return jsonify(curso), 200
     except ValueError as e:
         mensaje = str(e).lower()
@@ -84,6 +102,12 @@ def actualizar_parcial_curso(curso_id):
 def eliminar_curso(curso_id):
     try:
         curso_service.eliminar(curso_id)
+
+        ip_usuario = request.remote_addr
+        usuario_id = session.get('usuario_id')
+        accion = f"Eliminó el curso con ID: {curso_id}"
+        registrar_log(usuario_id, accion, ip_usuario)
+
         return jsonify({'mensaje': f'Curso {curso_id} eliminado correctamente'}), 200
     except ValueError as e:
         mensaje = str(e).lower()

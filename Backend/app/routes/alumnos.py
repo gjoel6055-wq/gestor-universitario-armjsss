@@ -6,6 +6,7 @@ from app.services.alumno_service import (
     actualizar_alumno,
     eliminar_alumno
 )
+from app.services.log_service import registrar_log
 
 alumnos_bp = Blueprint('alumnos', __name__)
 
@@ -42,6 +43,12 @@ def crear_nuevo_alumno():
     if situacion == 'email en uso':
         return jsonify({'error': 'El email ya está registrado.'}), 409
     if situacion is True:
+
+        ip_usuario = request.remote_addr
+        usuario_id = session.get('usuario_id')
+        accion = f"Registró al nuevo alumno: {nombre} {apellido} (Padrón: {padron})"
+        registrar_log(usuario_id, accion, ip_usuario)
+
         alumno = obtener_alumno(padron)
         return jsonify(alumno), 201
 
@@ -66,6 +73,12 @@ def actualizar_datos_alumno(id):
     if situacion == 'email en uso':
         return jsonify({'error': 'El email ya está registrado por otro usuario.'}), 409
     if situacion is True:
+
+        ip_usuario = request.remote_addr
+        usuario_id = session.get('usuario_id')
+        accion = f"Actualizó los datos del alumno con ID: {id}"
+        registrar_log(usuario_id, accion, ip_usuario)
+
         alumno = obtener_alumno(id)
         return jsonify(alumno), 200
 
@@ -78,6 +91,12 @@ def eliminar_alumno_por_id(id):
     if situacion == 'alumno no encontrado':
         return jsonify({'error': 'Alumno no encontrado.'}), 404
     if situacion is True:
+
+        ip_usuario = request.remote_addr
+        usuario_id = session.get('usuario_id')
+        accion = f"Eliminó al alumno con ID: {id}"
+        registrar_log(usuario_id, accion, ip_usuario)
+
         return jsonify({'message': 'Alumno eliminado con éxito.', 'status': True}), 200
 
     return jsonify({'error': 'No se pudo eliminar el alumno, intente de nuevo.'}), 500
