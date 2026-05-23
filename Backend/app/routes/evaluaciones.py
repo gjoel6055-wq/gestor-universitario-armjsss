@@ -24,9 +24,22 @@ def crear_evaluacion():
 def gestionar_evaluacion(id):
     if request.method == 'PUT':
         datos = request.get_json()
-        modificar_evaluacion_servicio (id, datos)
+        id_tipo = datos.get ('id_tipo')
+        fecha = datos.get ('fecha')
+        id_curso = datos.get ('id_curso')
+
+        if not id_tipo or not fecha or not id_curso:
+             return jsonify ({'error': 'Faltan datos obligatorios para actualizar'}), 400
+
+        encontrado = modificar_evaluacion_servicio (id, datos)
+        if not encontrado:
+             return jsonify ({'error': f'No se encontró la evaluacion con ID {id}'}), 404
+             
         return jsonify({'mensaje': f'Evaluación {id} actualizada con éxito.'}), 200
         
     if request.method == 'DELETE':
-        borrar_evaluacion_servicio (id)
+        encontrado = borrar_evaluacion_servicio (id)
+        if not encontrado:
+             return jsonify ({'error': f'No se encontró la evaluacion con ID {id}'}), 404
+             
         return jsonify({'mensaje': f'Evaluación {id} eliminada correctamente.'}), 200
