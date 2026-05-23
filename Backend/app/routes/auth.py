@@ -1,32 +1,8 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify
 from app.services.auth_service import procesar_login, crear_nuevo_usuario
-from functools import wraps
+from app.services.auth_service import requiere_token
 
 auth_bp = Blueprint('auth', __name__)
-
-def login_requerido(ruta):
-    @wraps(ruta)
-    def funcion_protegida(*args, **kwargs):
-        if 'email' not in session:
-            return jsonify({'error': 'Acceso denegado. Por favor, inicie sesión.'}), 401
-        return ruta(*args, **kwargs)
-
-    return funcion_protegida
-
-def rol_requerido(rol_necesario):
-    def decorador(ruta):
-        @wraps(ruta)
-        def funcion_protegida(*args, **kwargs):
-            rol_usuario = session.get('rol')
-
-            if rol_usuario != rol_necesario:
-                return jsonify({'error': 'No tenés permisos para acceder a esta función.'}), 403
-
-            return ruta(*args, **kwargs)
-
-        return funcion_protegida
-
-    return decorador
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
@@ -39,15 +15,17 @@ def login():
     if datos_usuario == 'contrasena_incorrecta':
         return jsonify({'error': 'La contraseña ingresada es incorrecta'}), 401
 
-    if datos_usuario == None:
+    if datos_usuario is None:
         return jsonify({'error': 'El email ingresado no se encuentra registrado.'}), 404
 
-    session['email'] = datos_usuario['email']
-    session['rol'] = datos_usuario['rol']
-    session['nombre'] = datos_usuario['nombre']
     return jsonify({
-        'mensaje':'Login exitoso',
-        'datos': datos_usuario
+        'mensaje': 'Login exitoso',
+        'token': datos_usuario['token'],
+        'datos': {
+            'nombre': datos_usuario['nombre'],
+            'email': datos_usuario['email'],
+            'rol': datos_usuario['rol']
+        }
     }), 200
 
 
@@ -64,14 +42,14 @@ def register():
     if situacion == 'email en uso':
         return jsonify({'error': "El email ingresado ya se encuentra en uso."}), 409
 
-    if situacion == True:
-        return  jsonify({'mensaje':'Se creó el usuario con exito.'}), 201
+    if situacion is True:
+        return jsonify({'mensaje': 'Se creó el usuario con exito.'}), 201
 
     return jsonify({'error': 'Ocurrio un error al crear el usuario, intentelo mas tarde.'}), 500
 
 
 @auth_bp.route('/logout', methods=['POST'])
+@requiere_token()
 def logout():
-    session.clear()
 
-    return jsonify({'mensaje': "Se cerró la sesión con exito"}), 200
+    return jsonify({'mensaje': "Se cerró la sesión con exito. Por favor elimine el token en el cliente."}), 200

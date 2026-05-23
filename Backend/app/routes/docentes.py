@@ -4,10 +4,12 @@ from app.services.docente_service import (
     registrar_docente,
     borrar_docente
 )
+from app.services.auth_service import requiere_token
 
 docente_bp = Blueprint('docente', __name__)
 
 @docente_bp.route('/docentes', methods=['GET'])
+@requiere_token()
 def obtener_todos_los_docentes():
     try:
         lista = listar_docentes()
@@ -16,6 +18,7 @@ def obtener_todos_los_docentes():
         return jsonify({'error': 'Error interno al obtener la lista de docentes'}), 500
 
 @docente_bp.route('/docentes', methods=['POST'])
+@requiere_token()
 def agregar_docente():
     datos = request.get_json()
     legajo = datos.get('legajo')
@@ -35,6 +38,7 @@ def agregar_docente():
         return jsonify({'error': 'Error interno en la base de datos (verifique que el usuario_id exista)'}), 500
 
 @docente_bp.route('/docentes/<int:legajo>', methods=['DELETE'])
+@requiere_token()
 def eliminar_docente(legajo):
     try:
         eliminado = borrar_docente(legajo)

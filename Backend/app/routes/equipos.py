@@ -1,10 +1,12 @@
 from flask import Blueprint, request, jsonify
 from app.services import equipo_service
+from app.services.auth_service import requiere_token
 
 equipos_bp = Blueprint('equipos', __name__)
 
 
 @equipos_bp.route('/equipos', methods=['GET'])
+@requiere_token()
 def obtener_equipos():
     try:
         curso_id = request.args.get('curso_id', type=int)
@@ -15,6 +17,7 @@ def obtener_equipos():
 
 
 @equipos_bp.route('/equipos/<int:equipo_id>', methods=['GET'])
+@requiere_token()
 def obtener_equipo(equipo_id):
     try:
         equipo = equipo_service.obtener_por_id(equipo_id)
@@ -26,6 +29,7 @@ def obtener_equipo(equipo_id):
 
 
 @equipos_bp.route('/equipos', methods=['POST'])
+@requiere_token()
 def crear_equipo():
     try:
         datos = request.get_json()
@@ -47,6 +51,7 @@ def crear_equipo():
 
 
 @equipos_bp.route('/equipos/<int:equipo_id>', methods=['PUT'])
+@requiere_token()
 def actualizar_equipo(equipo_id):
     try:
         datos = request.get_json()
@@ -68,6 +73,7 @@ def actualizar_equipo(equipo_id):
 
 
 @equipos_bp.route('/equipos/<int:equipo_id>', methods=['DELETE'])
+@requiere_token()
 def eliminar_equipo(equipo_id):
     try:
         equipo_service.eliminar(equipo_id)
@@ -86,6 +92,7 @@ def eliminar_equipo(equipo_id):
 
 
 @equipos_bp.route('/equipos/<int:equipo_id>/alumnos', methods=['POST'])
+@requiere_token()
 def agregar_alumno(equipo_id):
     try:
         datos = request.get_json()
@@ -107,6 +114,7 @@ def agregar_alumno(equipo_id):
 
 
 @equipos_bp.route('/equipos/<int:equipo_id>/alumnos/<int:padron>', methods=['DELETE'])
+@requiere_token()
 def quitar_alumno(equipo_id, padron):
     try:
         equipo_service.quitar_alumno(equipo_id, padron)
@@ -123,6 +131,7 @@ def quitar_alumno(equipo_id, padron):
 
 
 @equipos_bp.route('/equipos/<int:equipo_id>/evaluaciones', methods=['POST'])
+@requiere_token()
 def agregar_evaluacion(equipo_id):
     try:
         datos = request.get_json()
@@ -144,6 +153,7 @@ def agregar_evaluacion(equipo_id):
 
 
 @equipos_bp.route('/equipos/<int:equipo_id>', methods=['PATCH'])
+@requiere_token()
 def actualizar_parcial_equipo(equipo_id):
     try:
         datos = request.get_json()
@@ -165,6 +175,7 @@ def actualizar_parcial_equipo(equipo_id):
     
 
 @equipos_bp.route('/equipos/<int:equipo_id>/evaluaciones/<int:evaluacion_id>', methods=['DELETE'])
+@requiere_token()
 def quitar_evaluacion(equipo_id, evaluacion_id):
     try:
         equipo_service.quitar_evaluacion(equipo_id, evaluacion_id)

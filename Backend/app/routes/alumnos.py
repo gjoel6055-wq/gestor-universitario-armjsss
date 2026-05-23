@@ -6,15 +6,18 @@ from app.services.alumno_service import (
     actualizar_alumno,
     eliminar_alumno
 )
+from app.services.auth_service import requiere_token
 
 alumnos_bp = Blueprint('alumnos', __name__)
 
 @alumnos_bp.route('/alumnos', methods=['GET'])
+@requiere_token()
 def obtener_alumnos():
     alumnos = obtener_todos_alumnos()
     return jsonify(alumnos), 200
 
 @alumnos_bp.route('/alumnos/<int:id>', methods=['GET'])
+@requiere_token()
 def obtener_alumno_por_id(id):
     alumno = obtener_alumno(id)
     if alumno is None:
@@ -22,6 +25,7 @@ def obtener_alumno_por_id(id):
     return jsonify(alumno), 200
 
 @alumnos_bp.route('/alumnos', methods=['POST'])
+@requiere_token()
 def crear_nuevo_alumno():
     datos = request.get_json() or {}
     padron = datos.get('padron')
@@ -48,6 +52,7 @@ def crear_nuevo_alumno():
     return jsonify({'error': 'No se pudo crear el alumno, intente de nuevo.'}), 500
 
 @alumnos_bp.route('/alumnos/<int:id>', methods=['PUT'])
+@requiere_token()
 def actualizar_datos_alumno(id):
     datos = request.get_json() or {}
     nombre = datos.get('nombre')
@@ -72,6 +77,7 @@ def actualizar_datos_alumno(id):
     return jsonify({'error': 'No se pudo actualizar el alumno, intente de nuevo.'}), 500
 
 @alumnos_bp.route('/alumnos/<int:id>', methods=['DELETE'])
+@requiere_token()
 def eliminar_alumno_por_id(id):
     situacion = eliminar_alumno(id)
 

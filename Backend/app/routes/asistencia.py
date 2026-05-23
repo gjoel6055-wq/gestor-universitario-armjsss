@@ -1,10 +1,13 @@
 from app.services.qr_service import procesar_escaneo_qr
 from flask import Blueprint, request, jsonify
+from app.services.auth_service import requiere_token
 
 asistencia_bp = Blueprint('asistencia', __name__)
 
 @asistencia_bp.route('/asistencia/validar/<string:token>', methods=['POST'])
+@requiere_token()
 def validar_asistencia(token):
+
     situacion = procesar_escaneo_qr(token)
 
     if situacion == 'QR invalido':

@@ -3,15 +3,14 @@ from app.db import get_connection
 def buscar_usuario_por_email(email):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
-    query = "SELECT * FROM usuarios WHERE email=%s"
+    query = "SELECT * FROM usuarios WHERE email= %s"
     try:
         cursor.execute(query, (email, ))
         usuario = cursor.fetchone()
 
-        if usuario:
-            return usuario
-        else:
-            return None
+
+        return usuario
+
     except Exception as e:
         print(f"error: {e}")
         return None;
@@ -22,6 +21,7 @@ def buscar_usuario_por_email(email):
 def ingresar_nuevo_usuario(nombre, apellido, email, hash, rol):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
+
     query = 'INSERT INTO usuarios (email, password_hash, nombre, apellido, rol) VALUES (%s,%s,%s,%s,%s)'
     validation_query = "SELECT * FROM usuarios WHERE email = %s"
 

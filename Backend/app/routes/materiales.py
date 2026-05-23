@@ -5,10 +5,12 @@ from app.services.material_service import (
     modificar_material,
     eliminar_material
 )
+from app.services.auth_service import requiere_token
 
 material_bp = Blueprint('material', __name__)
 
 @material_bp.route('/materiales', methods=['POST'])
+@requiere_token()
 def agregar_material():
     datos = request.get_json()
     titulo = datos.get('titulo')
@@ -26,6 +28,7 @@ def agregar_material():
         return jsonify({'error': 'Error interno en la base de datos'}), 500
 
 @material_bp.route('/materiales', methods=['GET'])
+@requiere_token()
 def obtener_todos_los_materiales():
     try:
         lista = listar_materiales()
@@ -34,6 +37,7 @@ def obtener_todos_los_materiales():
         return jsonify({'error': 'Error al obtener los materiales de estudio'}), 500
 
 @material_bp.route('/materiales/<int:id>', methods=['PUT'])
+@requiere_token()
 def actualizar_material(id):
     datos = request.get_json()
     titulo = datos.get('titulo')
@@ -53,6 +57,7 @@ def actualizar_material(id):
         return jsonify({'error': 'Error interno al actualizar el material'}), 500
 
 @material_bp.route('/materiales/<int:id>', methods=['DELETE'])
+@requiere_token()
 def borrar_material(id):
     try:
         eliminado = eliminar_material(id)
