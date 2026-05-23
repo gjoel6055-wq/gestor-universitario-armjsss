@@ -1,11 +1,17 @@
-def guardar_evaluacion_bd(id_tipo, fecha, id_curso):
-    print(f"Base de Datos: Guardando evaluacion tipo {id_tipo} para curso {id_curso} el {fecha}")
-    return {"id": 100, "id_tipo": id_tipo, "fecha": fecha, "id_curso": id_curso}
+def guardar_evaluacion_bd(datos):
+    print(f"Base de Datos: Guardando evaluación... {datos}")
+    datos_guardados = datos.copy()
+    datos_guardados['id'] = 1  # ID simulado
+    return datos_guardados
 
-def actualizar_evaluacion_bd(id_evaluacion, fecha, id_tipo):
-    print(f"Base de Datos: Modificando evaluacion ID {id_evaluacion}")
+def modificar_evaluacion_bd(id, datos):
+    print(f"Base de Datos: Modificando evaluación con ID {id}")
+    if id > 500:
+        return False
     return True
 
-def eliminar_evaluacion_bd(id_evaluacion):
-    print(f"Base de Datos: Borrando de la tabla la evaluacion ID {id_evaluacion}")
+def borrar_evaluacion_bd(id):
+    print(f"Base de Datos: Eliminando evaluación con ID {id}")
+    if id > 500:
+        return False
     return True
