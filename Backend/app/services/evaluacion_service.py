@@ -1,8 +1,14 @@
+from app.repositories.evaluacion_repository import (
+     guardar_evaluacion_bd,
+     modificar_evaluacion_bd,
+     borrar_evaluacion_bd
+)
+
 def crear_evaluacion_servicio(datos):
-    return datos
+    return guardar_evaluacion_bd(datos)
 
-def modificar_evaluacion_servicio(id_evaluacion, datos):
-    return True
+def modificar_evaluacion_servicio(id, datos):
+    return modificar_evaluacion_bd(id, datos)
 
-def borrar_evaluacion_servicio(id_evaluacion):
-    return True
+def borrar_evaluacion_servicio(id):
+    return borrar_evaluacion_bd(id)
