@@ -6,8 +6,7 @@ from flask import request, jsonify
 from app.repositories.usuario_repository import buscar_usuario_por_email, ingresar_nuevo_usuario
 from werkzeug.security import check_password_hash, generate_password_hash
 
-SECRET_KEY = "tu_clave_secreta_super_segura"
-
+SECRET_KEY = "la_clave_super_secreta_secretisima_y_segura"
 
 def generar_token(usuario_id, rol):
     payload = {
