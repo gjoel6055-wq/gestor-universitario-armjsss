@@ -1,10 +1,13 @@
 from flask import Blueprint, request, jsonify
 from app.services import curso_service, log_service
+from app.services.auth_service import requiere_token
+
 
 cursos_bp = Blueprint('cursos', __name__)
 
 
 @cursos_bp.route('/cursos', methods=['GET'])
+@requiere_token()
 def obtener_cursos():
     try:
         cursos = curso_service.obtener_todos()
@@ -14,6 +17,7 @@ def obtener_cursos():
 
 
 @cursos_bp.route('/cursos/<int:curso_id>', methods=['GET'])
+@requiere_token()
 def obtener_curso(curso_id):
     try:
         curso = curso_service.obtener_por_id(curso_id)
@@ -25,6 +29,7 @@ def obtener_curso(curso_id):
 
 
 @cursos_bp.route('/cursos', methods=['POST'])
+@requiere_token()
 def crear_curso():
     try:
         datos = request.get_json()
@@ -46,6 +51,7 @@ def crear_curso():
 
 
 @cursos_bp.route('/cursos/<int:curso_id>', methods=['PUT'])
+@requiere_token()
 def actualizar_curso(curso_id):
     try:
         datos = request.get_json()
@@ -72,6 +78,7 @@ def actualizar_curso(curso_id):
         return jsonify({'error': str(e)}), 500
 
 @cursos_bp.route('/cursos/<int:curso_id>', methods=['PATCH'])
+@requiere_token()
 def actualizar_parcial_curso(curso_id):
     try:
         datos = request.get_json()
@@ -99,6 +106,7 @@ def actualizar_parcial_curso(curso_id):
     
     
 @cursos_bp.route('/cursos/<int:curso_id>', methods=['DELETE'])
+@requiere_token()
 def eliminar_curso(curso_id):
     try:
         curso_service.eliminar(curso_id)
