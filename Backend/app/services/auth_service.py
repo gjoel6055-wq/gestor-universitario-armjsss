@@ -37,7 +37,7 @@ def procesar_login(email, password):
 
 
 def crear_nuevo_usuario(nombre, apellido, email, password):
-    hash_password = generate_password_hash(password)
+    hash_password = generate_password_hash(password, method='pbkdf2:sha256')
     rol = 'alumno'
     situacion = ingresar_nuevo_usuario(nombre, apellido, email, hash_password, rol)
     return situacion

@@ -15,8 +15,8 @@ def registrar_actividad(usuario_id, accion, ip):
     return "error al guardar el log en la base de datos"
 
 
-def listar_registro_actividad():
-    return listar_logs()
+def listar_registro_actividad(accion=None):
+    return listar_logs(accion=accion)
 
 def log_por_id(id_log):
     return buscar_log_especifico(id_log)

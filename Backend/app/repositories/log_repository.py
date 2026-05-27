@@ -18,13 +18,19 @@ def registrar_log(usuario_id, ip, accion):
         conn.close()
 
 
-def listar_logs():
+def listar_logs(accion=None):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
-    query = "SELECT * FROM log_actividad"
+
+    if accion:
+        query = "SELECT * FROM log_actividad WHERE accion = %s"
+        parametros = (accion,)
+    else:
+        query = "SELECT * FROM log_actividad"
+        parametros = ()
 
     try:
-        cursor.execute(query)
+        cursor.execute(query, parametros)
         logs = cursor.fetchall()
 
         return logs

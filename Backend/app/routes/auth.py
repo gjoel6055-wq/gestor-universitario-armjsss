@@ -45,7 +45,6 @@ def login():
         }
     }), 200
 
-
 @auth_bp.route('/registro', methods=['POST'])
 def register():
     datos = request.get_json()

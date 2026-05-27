@@ -6,6 +6,7 @@ from app.routes.auth import auth_bp
 from app.routes.asistencia import asistencia_bp
 from app.routes.alumnos import alumnos_bp
 from app.routes.dashboard import dashboard_bp
+from app.routes.log import log_bp
 
 def create_app():
     app = Flask(__name__)
@@ -17,5 +18,7 @@ def create_app():
     app.register_blueprint(docente_bp)
     app.register_blueprint(alumnos_bp)
     app.register_blueprint(dashboard_bp)
+    app.register_blueprint(log_bp)
+
 
     return app
