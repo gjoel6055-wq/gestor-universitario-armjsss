@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Código QR de Asistencia</title>
+
+    {% include 'emails/asistencia_styles.html' %}
+</head>
+<body>
+
+    <table class="email-wrapper" role="presentation" cellspacing="0" cellpadding="0">
+        <tr>
+            <td align="center">
+                <table class="email-container" cellspacing="0" cellpadding="0" width="100%">
+                    <tr>
+                        <td class="header">
+                            <h1>Gestor Universitario FIUBA</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="content">
+                            <p>¡Hola, <strong>{{ nombre }}</strong>!</p>
+                            <p>Se ha generado tu código QR de asistencia para la clase del <strong>{{ fecha }}</strong>.</p>
+
+                            <div class="qr-box">
+                                <p>Tu código de acceso:</p>
+                                <img src="{{ url_qr }}" alt="Código QR de Asistencia" class="qr-image">
+                            </div>
+
+                            <p>Recuerda que tenés 30 minutos para escanearlo antes de que el QR expire.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="footer">
+                            <p>Facultad de Ingeniería - UBA</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>

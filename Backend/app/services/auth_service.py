@@ -2,11 +2,9 @@ import jwt
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from flask import request, jsonify
-
+import os
 from app.repositories.usuario_repository import buscar_usuario_por_email, ingresar_nuevo_usuario
 from werkzeug.security import check_password_hash, generate_password_hash
-
-SECRET_KEY = "la_clave_super_secreta_secretisima_y_segura"
 
 def generar_token(usuario_id, rol):
     payload = {
@@ -14,7 +12,7 @@ def generar_token(usuario_id, rol):
         'rol': rol,
         'exp': datetime.now(timezone.utc) + timedelta(hours=8)
     }
-    return jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+    return jwt.encode(payload, os.getenv('SECRET_KEY'), algorithm='HS256')
 
 def procesar_login(email, password):
     datos_usuario = buscar_usuario_por_email(email)
@@ -36,10 +34,10 @@ def procesar_login(email, password):
     }
 
 
-def crear_nuevo_usuario(nombre, apellido, email, password):
+def crear_nuevo_usuario(nombre, apellido, email, password, padron):
     hash_password = generate_password_hash(password, method='pbkdf2:sha256')
     rol = 'alumno'
-    situacion = ingresar_nuevo_usuario(nombre, apellido, email, hash_password, rol)
+    situacion = ingresar_nuevo_usuario(nombre, apellido, email, hash_password, rol, padron)
     return situacion
 
 
@@ -59,7 +57,7 @@ def requiere_token(rol_necesario=None):
             token = token.split(" ")[1]
 
             try:
-                datos_token = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+                datos_token = jwt.decode(token, os.getenv("SECRET_KEY"), algorithms=['HS256'])
 
                 request.usuario_id = datos_token['id']
                 request.usuario_rol = datos_token['rol']

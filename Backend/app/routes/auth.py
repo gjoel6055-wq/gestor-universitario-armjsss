@@ -2,10 +2,9 @@ from flask import Blueprint, request, jsonify
 from app.services.auth_service import procesar_login, crear_nuevo_usuario, requiere_token
 from app.services.log_service import registrar_log
 import re
+from constants import REGEX_EMAIL
 
 auth_bp = Blueprint('auth', __name__)
-
-REGEX_EMAIL = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
 
 
 def es_email_valido(email):
@@ -52,6 +51,7 @@ def register():
     apellido = datos.get('apellido')
     email = datos.get('email')
     password = datos.get('password')
+    padron_o_legajo = datos.get('padron')
 
     if not all([nombre, apellido, email, password]):
         return jsonify({'error': 'Todos los campos son obligatorios'}), 400
@@ -59,7 +59,7 @@ def register():
     if not es_email_valido(email):
         return jsonify({'error': 'El formato del email no es válido'}), 400
 
-    situacion = crear_nuevo_usuario(nombre, apellido, email, password)
+    situacion = crear_nuevo_usuario(nombre, apellido, email, password, padron_o_legajo)
 
     if situacion == 'email en uso':
         return jsonify({'error': "El email ingresado ya se encuentra en uso."}), 409

@@ -1,4 +1,7 @@
+import os
 from flask import Flask
+from app.extensions import mail
+from dotenv import load_dotenv
 from app.routes.cursos import cursos_bp
 from app.routes.equipos import equipos_bp
 from app.routes.docentes import docente_bp
@@ -10,6 +13,16 @@ from app.routes.log import log_bp
 
 def create_app():
     app = Flask(__name__)
+    load_dotenv()
+
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USERNAME'] = os.getenv('EMAIL_SENDER')
+    app.config['MAIL_PASSWORD'] = os.getenv('EMAIL_PASSWORD')
+
+
+    mail.init_app(app)
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(asistencia_bp)
