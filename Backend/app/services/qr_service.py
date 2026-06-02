@@ -3,7 +3,8 @@ import hashlib
 import qrcode
 import datetime
 import io
-from constants import API_BASE_URL
+import time
+from constants import FRONT_BASE_URL
 
 def procesar_escaneo_qr(qr_token):
     return registrar_asistencia(qr_token)
@@ -15,7 +16,8 @@ def generar_qr_para_asistencia(padron, fecha_clase, duracion_qr=30):
     else:
         fecha_str = str(fecha_clase)
 
-    estructura_base = f"asistencia_{padron}_{fecha_str}"
+    tiempo_exacto = str(time.time())
+    estructura_base = f"asistencia_{padron}_{fecha_str}_{tiempo_exacto}"
 
     qr_token = hashlib.md5(estructura_base.encode('utf-8')).hexdigest()
 
@@ -26,7 +28,7 @@ def generar_qr_para_asistencia(padron, fecha_clase, duracion_qr=30):
     if estado_creacion == None:
         return None
 
-    url_registro_asistencia = f"{API_BASE_URL}/asistencia/validar/{qr_token}"
+    url_registro_asistencia = f"{FRONT_BASE_URL}/asistencia/validar/{qr_token}"
 
     qr = qrcode.QRCode(version=1, box_size=10, border=4)
     qr.add_data(url_registro_asistencia)

@@ -1,6 +1,6 @@
 from app.services.qr_service import generar_qr_para_asistencia
 from app.services.mail_service import enviar_email_con_qr
-from repositories.asistencia_repository import obtener_alumnos_curso, obtener_asistencias_por_fecha
+from repositories.asistencia_repository import obtener_alumnos_curso, obtener_asistencias_por_fecha, registrar_asistencia
 from datetime import datetime
 
 def procesar_envio_masivo_asistencia(lista_alumnos):
