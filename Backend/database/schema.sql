@@ -155,4 +155,11 @@ CREATE TABLE IF NOT EXISTS equipos_evaluaciones (
     UNIQUE(equipo_id, evaluacion_id)
 );
 
-
+CREATE TABLE IF NOT EXISTS alumnos_cursos (
+    padron INT NOT NULL,
+    curso_id INT NOT NULL,
+    fecha_inscripcion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (padron, curso_id),
+    FOREIGN KEY (padron) REFERENCES alumnos(padron) ON DELETE CASCADE,
+    FOREIGN KEY (curso_id) REFERENCES cursos(curso_id) ON DELETE CASCADE
+);
