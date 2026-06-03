@@ -21,7 +21,7 @@ def obtener_todos_los_docentes():
 
 
 @docente_bp.route('/docentes', methods=['POST'])
-@requiere_token(rol_necesario='admin')
+@requiere_token(rol_necesario='docente')
 def agregar_docente():
     datos = request.get_json()
     legajo = datos.get('legajo')
@@ -49,7 +49,7 @@ def agregar_docente():
 
 
 @docente_bp.route('/docentes/<int:legajo>', methods=['DELETE'])
-@requiere_token(rol_necesario='admin')
+@requiere_token(rol_necesario='docente')
 def eliminar_docente(legajo):
     try:
         eliminado = borrar_docente(legajo)
