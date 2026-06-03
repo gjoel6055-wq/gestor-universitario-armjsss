@@ -255,16 +255,13 @@ INSERT INTO materiales (curso_id, titulo, descripcion, archivo_url, tipo, public
 -- LOG_ACTIVIDAD
 -- ══════════════════════════════════════════════════════════════════
 INSERT INTO log_actividad (usuario_id, accion, ip) VALUES
-(1, 'login exitoso',              '192.168.1.10'),
-(1, 'crear curso IDS 2026 1C',    '192.168.1.10'),
+(1, 'Inicio sesion',              '192.168.1.10'),
+(1, 'Creó un curso nuevo IDS 2026 1C',    '192.168.1.10'),
 (1, 'crear evaluacion Parcial 1', '192.168.1.10'),
-(1, 'cargar notas Parcial 1',     '192.168.1.10'),
-(2, 'login exitoso',              '192.168.1.11'),
-(2, 'generar QR padron 100001',   '192.168.1.11'),
-(2, 'generar QR padron 100002',   '192.168.1.11'),
-(6, 'login exitoso',              '192.168.1.20'),
-(7, 'login exitoso',              '192.168.1.21'),
-(8, 'login exitoso',              '192.168.1.22');
+(2, 'Inicio sesion',              '192.168.1.11'),
+(6, 'Inicio sesion',              '192.168.1.20'),
+(7, 'Inicio sesion',              '192.168.1.21'),
+(8, 'Inicio sesion',              '192.168.1.22');
 
 
 -- ══════════════════════════════════════════════════════════════════
@@ -289,4 +286,4 @@ INSERT INTO alumnos_cursos (padron, curso_id) VALUES
 (100015, 1),
 (100016, 1),
 (100017, 1),
-(100018, 1);
+(100018, 1);

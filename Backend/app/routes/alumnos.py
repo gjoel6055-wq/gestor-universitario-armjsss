@@ -89,6 +89,10 @@ def actualizar_datos_alumno(id):
     registrar_log(usuario_id, accion, ip_usuario)
 
     alumno = obtener_alumno(id)
+    ip_cliente = request.remote_addr
+    usuario_actual = request.usuario_id
+    accion = f"Actualizó los datos del alumno {apellido} {nombre}"
+    registrar_log(usuario_actual, accion, ip_cliente)
     return jsonify(alumno), 200
 
 @alumnos_bp.route('/alumnos/<int:id>', methods=['DELETE'])
@@ -103,6 +107,10 @@ def eliminar_alumno_por_id(id):
         ip_usuario = request.remote_addr
         usuario_id = session.get('usuario_id')
         accion = f"Eliminó al alumno con ID: {id}"
+        registrar_log(usuario_id, accion, ip_usuario)
+        ip_usuario = request.remote_addr
+        usuario_id = session.get('usuario_id')
+        accion = f"Eliminó al alumno de id {id}"
         registrar_log(usuario_id, accion, ip_usuario)
 
         return jsonify({'message': 'Alumno eliminado con éxito.', 'status': True}), 200

@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, session
-from services.evaluacion_service import (
+from app.services.evaluacion_service import (
     crear_evaluacion_servicio,
     modificar_evaluacion_servicio,
     borrar_evaluacion_servicio

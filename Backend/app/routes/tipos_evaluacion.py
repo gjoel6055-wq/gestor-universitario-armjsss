@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from services.tipo_evaluacion_service import (
+from app.services.tipo_evaluacion_service import (
      crear_tipo_servicio,
      modificar_tipo_servicio,
      borrar_tipo_servicio

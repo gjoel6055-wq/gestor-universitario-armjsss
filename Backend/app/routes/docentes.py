@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from services.docente_service import (
+from app.services.docente_service import (
     listar_docentes,
     registrar_docente,
     borrar_docente
