@@ -22,8 +22,8 @@ def crear_nueva_asistencia(padron, fecha, qr_token, fecha_expiraicon):
 
 def registrar_asistencia(qr_token):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
-    query_validation = "SELECT qr_expiracion FROM asistencias WHERE qr_token = %s"
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    query_validation = "SELECT qr_expiracion, presente FROM asistencias WHERE qr_token = %s"
     query_registro_asistencia = "UPDATE asistencias SET presente = 1 WHERE qr_token = %s"
 
     try:
@@ -32,6 +32,9 @@ def registrar_asistencia(qr_token):
 
         if not resultado:
             return "QR invalido"
+
+        if resultado['presente'] == 1:
+            return "ya presente"
 
         fecha_expiracion = resultado['qr_expiracion']
         fecha_actual = datetime.now()
@@ -94,6 +97,26 @@ def obtener_asistencias_por_fecha(fecha_consulta):
 
     except Exception as e:
         print(f"Error en BD al obtener asistencias por fecha: {e}")
+        return None
+    finally:
+        cursor.close()
+        conn.close()
+
+def obtener_asistencia_por_token(token):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        query = """
+            SELECT a.asistencia_id, a.presente, a.qr_expiracion, u.nombre, u.apellido
+            FROM asistencias a
+            JOIN alumnos al ON a.padron = al.padron
+            JOIN usuarios u ON al.usuario_id = u.usuario_id
+            WHERE a.qr_token = %s
+        """
+        cursor.execute(query, (token,))
+        return cursor.fetchone()
+    except Exception as e:
+        print(f"Error al buscar token: {e}")
         return None
     finally:
         cursor.close()

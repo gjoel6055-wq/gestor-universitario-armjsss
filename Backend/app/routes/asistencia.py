@@ -5,7 +5,7 @@ from services.asistencia_service import procesar_envio_masivo_asistencia, obtene
 
 asistencia_bp = Blueprint('asistencia', __name__)
 
-@asistencia_bp.route('/asistencia/validar/<string:token>', methods=['POST'])
+@asistencia_bp.route('/asistencia/validar-qr/<string:token>', methods=['POST'])
 @requiere_token()
 def validar_asistencia(token):
 
@@ -16,6 +16,9 @@ def validar_asistencia(token):
 
     if situacion == 'token expirado':
         return jsonify({'error':'El codigo escaneado ya expiró, pruebe con un codigo vigente'}), 410
+
+    if situacion == 'ya presente':
+        return jsonify({'mensaje': 'Tu asistencia ya fue registrada previamente.'}), 200
 
     if situacion == True:
         return jsonify({'mensaje':'Se ha registrado su asistencia con exito.'}), 201
