@@ -1,4 +1,3 @@
-
 USE gestor_universitario;
 
 SET FOREIGN_KEY_CHECKS = 0;
@@ -12,6 +11,7 @@ TRUNCATE TABLE equipos;
 TRUNCATE TABLE materiales;
 TRUNCATE TABLE log_actividad;
 TRUNCATE TABLE docentes;
+TRUNCATE TABLE alumnos_cursos;
 TRUNCATE TABLE alumnos;
 TRUNCATE TABLE cursos;
 TRUNCATE TABLE usuarios;
@@ -24,32 +24,32 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- ══════════════════════════════════════════════════════════════════
 INSERT INTO usuarios (email, password_hash, nombre, apellido, rol) VALUES
 -- Docentes
-('garcia.carlos@fiuba.edu.ar',   '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Carlos',    'García',    'docente'),
-('martinez.ana@fiuba.edu.ar',    '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Ana',       'Martínez',  'docente'),
-('rodriguez.juan@fiuba.edu.ar',  '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Juan',      'Rodríguez', 'docente'),
-('lopez.maria@fiuba.edu.ar',     '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'María',     'López',     'docente'),
-('fernandez.pedro@fiuba.edu.ar', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Pedro',     'Fernández', 'docente'),
+('garcia.carlos@fiuba.edu.ar',   'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Carlos',    'García',    'docente'),
+('martinez.ana@fiuba.edu.ar',    'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Ana',       'Martínez',  'docente'),
+('rodriguez.juan@fiuba.edu.ar',  'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Juan',      'Rodríguez', 'docente'),
+('lopez.maria@fiuba.edu.ar',     'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'María',     'López',     'docente'),
+('fernandez.pedro@fiuba.edu.ar', 'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Pedro',     'Fernández', 'docente'),
 -- Alumnos
-('perez.lucas@fi.uba.ar',        '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Lucas',     'Pérez',     'alumno'),
-('gomez.sofia@fi.uba.ar',        '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Sofía',     'Gómez',     'alumno'),
-('diaz.martin@fi.uba.ar',        '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Martín',    'Díaz',      'alumno'),
-('sanchez.val@fi.uba.ar',        '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Valentina', 'Sánchez',   'alumno'),
-('torres.nico@fi.uba.ar',        '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Nicolás',   'Torres',    'alumno'),
-('ramirez.cami@fi.uba.ar',       '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Camila',    'Ramírez',   'alumno'),
-('flores.agus@fi.uba.ar',        '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Agustín',   'Flores',    'alumno'),
-('rojas.juli@fi.uba.ar',         '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Julieta',   'Rojas',     'alumno'),
-('herrera.santi@fi.uba.ar',      '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Santiago',  'Herrera',   'alumno'),
-('morales.lucia@fi.uba.ar',      '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Lucía',     'Morales',   'alumno'),
-('jimenez.facu@fi.uba.ar',       '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Facundo',   'Jiménez',   'alumno'),
-('vargas.flor@fi.uba.ar',        '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Florencia', 'Vargas',    'alumno'),
-('castro.tomas@fi.uba.ar',       '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Tomás',     'Castro',    'alumno'),
-('ortiz.mica@fi.uba.ar',         '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Micaela',   'Ortiz',     'alumno'),
-('ruiz.igna@fi.uba.ar',          '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Ignacio',   'Ruiz',      'alumno'),
-('medina.abril@fi.uba.ar',       '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Abril',     'Medina',    'alumno'),
-('aguilar.eze@fi.uba.ar',        '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Ezequiel',  'Aguilar',   'alumno'),
-('reyes.anto@fi.uba.ar',         '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Antonella', 'Reyes',     'alumno'),
-('navarro.mateo@fi.uba.ar',      '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Mateo',     'Navarro',   'alumno'),
-('dominguez.pilar@fi.uba.ar',    '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TUkN5R8QJ2ZaVhJ5bEj9wKZmGk.6', 'Pilar',     'Domínguez', 'alumno');
+('perez.lucas@fi.uba.ar',        'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Lucas',     'Pérez',     'alumno'),
+('gomez.sofia@fi.uba.ar',        'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Sofía',     'Gómez',     'alumno'),
+('diaz.martin@fi.uba.ar',        'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Martín',    'Díaz',      'alumno'),
+('sanchez.val@fi.uba.ar',        'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Valentina', 'Sánchez',   'alumno'),
+('torres.nico@fi.uba.ar',        'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Nicolás',   'Torres',    'alumno'),
+('ramirez.cami@fi.uba.ar',       'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Camila',    'Ramírez',   'alumno'),
+('flores.agus@fi.uba.ar',        'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Agustín',   'Flores',    'alumno'),
+('rojas.juli@fi.uba.ar',         'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Julieta',   'Rojas',     'alumno'),
+('herrera.santi@fi.uba.ar',      'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Santiago',  'Herrera',   'alumno'),
+('morales.lucia@fi.uba.ar',      'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Lucía',     'Morales',   'alumno'),
+('jimenez.facu@fi.uba.ar',       'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Facundo',   'Jiménez',   'alumno'),
+('vargas.flor@fi.uba.ar',        'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Florencia', 'Vargas',    'alumno'),
+('castro.tomas@fi.uba.ar',       'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Tomás',     'Castro',    'alumno'),
+('ortiz.mica@fi.uba.ar',         'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Micaela',   'Ortiz',     'alumno'),
+('ruiz.igna@fi.uba.ar',          'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Ignacio',   'Ruiz',      'alumno'),
+('medina.abril@fi.uba.ar',       'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Abril',     'Medina',    'alumno'),
+('aguilar.eze@fi.uba.ar',        'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Ezequiel',  'Aguilar',   'alumno'),
+('reyes.anto@fi.uba.ar',         'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Antonella', 'Reyes',     'alumno'),
+('navarro.mateo@fi.uba.ar',      'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Mateo',     'Navarro',   'alumno'),
+('dominguez.pilar@fi.uba.ar',    'pbkdf2:sha256:1000000$ZJorxLRs7LjuWR3N$2a131d0b2bc6e38c7acd234ec6b0ed5d84b1b52ec7ef43217b3b01cd466002b9', 'Pilar',     'Domínguez', 'alumno');
 
 
 -- ══════════════════════════════════════════════════════════════════
@@ -265,3 +265,28 @@ INSERT INTO log_actividad (usuario_id, accion, ip) VALUES
 (6, 'login exitoso',              '192.168.1.20'),
 (7, 'login exitoso',              '192.168.1.21'),
 (8, 'login exitoso',              '192.168.1.22');
+
+
+-- ══════════════════════════════════════════════════════════════════
+-- ALUMNOS_CURSOS
+-- ══════════════════════════════════════════════════════════════════
+INSERT INTO alumnos_cursos (padron, curso_id) VALUES
+(100001, 1),
+(100001, 2),
+(100002, 1),
+(100003, 1),
+(100004, 2),
+(100005, 1),
+(100006, 1),
+(100007, 1),
+(100008, 1),
+(100009, 1),
+(100010, 1),
+(100011, 1),
+(100012, 1),
+(100013, 1),
+(100014, 1),
+(100015, 1),
+(100016, 1),
+(100017, 1),
+(100018, 1);

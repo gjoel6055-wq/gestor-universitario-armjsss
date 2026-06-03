@@ -85,7 +85,7 @@ def crear_alumno_en_bd(padron, nombre, apellido, email, password_hash, abandono=
         conn.close()
 
 
-def actualizar_alumno_en_bd(padron, nombre=None, apellido=None, email=None, password_hash=None, abandono=None):
+def actualizar_alumno_en_bd(padron, nombre=None, apellido=None, email=None, password_hash=None, abandono=None, cursos=None):
     alumno = buscar_alumno_por_padron(padron)
     if alumno is None:
         return 'alumno no encontrado'
@@ -122,6 +122,15 @@ def actualizar_alumno_en_bd(padron, nombre=None, apellido=None, email=None, pass
         if abandono is not None:
             cursor.execute('UPDATE alumnos SET abandono = %s WHERE padron = %s', (int(bool(abandono)), padron))
 
+        # Sincronizar cursos si se pasó la lista
+        if cursos is not None:
+            # Primero eliminamos las relaciones anteriores
+            cursor.execute('DELETE FROM alumnos_cursos WHERE padron = %s', (padron,))
+            # Insertamos las nuevas
+            for curso_id in cursos:
+                if curso_id:
+                    cursor.execute('INSERT INTO alumnos_cursos (padron, curso_id) VALUES (%s, %s)', (padron, int(curso_id)))
+
         conn.commit()
         return True
     except Exception as e:
@@ -151,3 +160,25 @@ def eliminar_alumno_en_bd(padron):
     finally:
         cursor.close()
         conn.close()
+
+
+def obtener_cursos_del_alumno(padron):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        query = '''
+            SELECT c.curso_id, c.nombre, c.cuatrimestre, c.anio, c.descripcion
+            FROM alumnos_cursos ac
+            JOIN cursos c ON ac.curso_id = c.curso_id
+            WHERE ac.padron = %s AND c.deleted_at IS NULL
+            ORDER BY c.anio DESC, c.cuatrimestre DESC
+        '''
+        cursor.execute(query, (padron,))
+        return cursor.fetchall() or []
+    except Exception as e:
+        print(f'Error al obtener cursos del alumno {padron}: {e}')
+        return []
+    finally:
+        cursor.close()
+        conn.close()
+

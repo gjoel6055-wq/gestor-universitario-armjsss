@@ -67,27 +67,29 @@ def actualizar_datos_alumno(id):
     email = datos.get('email')
     password = datos.get('password')
     abandono = datos.get('abandono')
+    cursos = datos.get('cursos')
 
-    if nombre is None and apellido is None and email is None and password is None and abandono is None:
+    if (nombre is None and apellido is None and email is None and 
+        password is None and abandono is None and cursos is None):
         return jsonify({'error': 'Se requiere al menos un campo para actualizar.'}), 400
 
-    situacion = actualizar_alumno(id, nombre, apellido, email, password, abandono)
+    situacion = actualizar_alumno(id, datos)
 
-    if situacion == 'alumno no encontrado':
-        return jsonify({'error': 'Alumno no encontrado.'}), 404
-    if situacion == 'email en uso':
-        return jsonify({'error': 'El email ya está registrado por otro usuario.'}), 409
-    if situacion is True:
+    if isinstance(situacion, dict) and 'error' in situacion:
+        err_msg = situacion['error']
+        if err_msg == 'alumno no encontrado':
+            return jsonify({'error': 'Alumno no encontrado.'}), 404
+        if err_msg == 'email en uso':
+            return jsonify({'error': 'El email ya está registrado por otro usuario.'}), 409
+        return jsonify({'error': err_msg}), 500
 
-        ip_usuario = request.remote_addr
-        usuario_id = session.get('usuario_id')
-        accion = f"Actualizó los datos del alumno con ID: {id}"
-        registrar_log(usuario_id, accion, ip_usuario)
+    ip_usuario = request.remote_addr
+    usuario_id = request.usuario_id if hasattr(request, 'usuario_id') else None
+    accion = f"Actualizó los datos del alumno con ID: {id}"
+    registrar_log(usuario_id, accion, ip_usuario)
 
-        alumno = obtener_alumno(id)
-        return jsonify(alumno), 200
-
-    return jsonify({'error': 'No se pudo actualizar el alumno, intente de nuevo.'}), 500
+    alumno = obtener_alumno(id)
+    return jsonify(alumno), 200
 
 @alumnos_bp.route('/alumnos/<int:id>', methods=['DELETE'])
 @requiere_token()

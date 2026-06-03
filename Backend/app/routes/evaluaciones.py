@@ -6,7 +6,31 @@ from services.evaluacion_service import (
 )
 from services.auth_service import requiere_token
 
+from app.db import get_connection
+
 evaluaciones_bp = Blueprint('evaluaciones', __name__)
+
+@evaluaciones_bp.route('/evaluaciones', methods=['GET'])
+@requiere_token()
+def listar_evaluaciones():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('''
+            SELECT e.evaluacion_id, e.tipo_id, e.curso_id, e.nombre, e.fecha, e.peso, e.descripcion,
+                   te.nombre AS tipo_nombre, c.nombre AS curso_nombre
+            FROM evaluaciones e
+            JOIN tipos_evaluacion te ON e.tipo_id = te.tipo_id
+            JOIN cursos c ON e.curso_id = c.curso_id
+            WHERE e.deleted_at IS NULL
+            ORDER BY e.fecha DESC
+        ''')
+        evaluaciones = cursor.fetchall() or []
+        cursor.close()
+        conn.close()
+        return jsonify(evaluaciones), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @evaluaciones_bp.route('/evaluaciones', methods=['POST'])
 @requiere_token()

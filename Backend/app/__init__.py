@@ -10,6 +10,9 @@ from app.routes.asistencia import asistencia_bp
 from app.routes.alumnos import alumnos_bp
 from app.routes.dashboard import dashboard_bp
 from app.routes.log import log_bp
+from app.routes.notas import notas_bp
+from app.routes.evaluaciones import evaluaciones_bp
+from app.routes.tipos_evaluacion import tipos_evaluacion_bp
 
 def create_app():
     app = Flask(__name__)
@@ -32,6 +35,9 @@ def create_app():
     app.register_blueprint(alumnos_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(log_bp)
+    app.register_blueprint(notas_bp)
+    app.register_blueprint(evaluaciones_bp)
+    app.register_blueprint(tipos_evaluacion_bp)
 
 
     return app
