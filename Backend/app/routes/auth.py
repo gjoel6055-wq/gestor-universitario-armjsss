@@ -66,7 +66,7 @@ def register():
 
     if situacion is True:
         ip_usuario = request.remote_addr
-        accion = f"Nuevo usuario registrado: {email}"
+        accion = f"Nuevo usuario registrado con el email: {email}"
         registrar_log(None, accion, ip_usuario)
         return jsonify({'mensaje': 'Se creó el usuario con exito.'}), 201
 
@@ -81,4 +81,4 @@ def logout():
     usuario_id = request.usuario_id
     registrar_log(usuario_id, accion, ip_usuario)
 
-    return jsonify({'mensaje': "Se cerró la sesión con exito. Por favor elimine el token en el cliente."}), 200
+    return jsonify({'mensaje': "Se cerró la sesión con exito."}), 200

@@ -1,5 +1,5 @@
-from flask import Blueprint, request, jsonify
-from app.services.alumno_service import (
+from flask import Blueprint, request, jsonify, session
+from services.alumno_service import (
     obtener_todos_alumnos,
     obtener_alumno,
     crear_alumno,

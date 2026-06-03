@@ -1,11 +1,11 @@
 from flask import Blueprint, request, jsonify
-from app.services.docente_service import (
+from services.docente_service import (
     listar_docentes,
     registrar_docente,
     borrar_docente
 )
-from app.services.log_service import registrar_log
-from app.services.auth_service import requiere_token
+from services.log_service import registrar_log
+from services.auth_service import requiere_token
 
 docente_bp = Blueprint('docente', __name__)
 

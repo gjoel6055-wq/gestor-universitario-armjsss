@@ -154,3 +154,5 @@ CREATE TABLE IF NOT EXISTS equipos_evaluaciones (
     FOREIGN KEY (evaluacion_id) REFERENCES evaluaciones(evaluacion_id) ON DELETE CASCADE,
     UNIQUE(equipo_id, evaluacion_id)
 );
+
+

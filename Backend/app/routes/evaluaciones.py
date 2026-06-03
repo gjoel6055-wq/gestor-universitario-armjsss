@@ -1,10 +1,10 @@
-from flask import Blueprint, request, jsonify
-from app.services.evaluacion_service import (
+from flask import Blueprint, request, jsonify, session
+from services.evaluacion_service import (
     crear_evaluacion_servicio,
     modificar_evaluacion_servicio,
     borrar_evaluacion_servicio
 )
-from app.services.auth_service import requiere_token
+from services.auth_service import requiere_token
 
 evaluaciones_bp = Blueprint('evaluaciones', __name__)
 

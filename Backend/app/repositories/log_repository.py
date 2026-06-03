@@ -23,8 +23,8 @@ def listar_logs(accion=None):
     cursor = conn.cursor(dictionary=True)
 
     if accion:
-        query = "SELECT * FROM log_actividad WHERE accion = %s"
-        parametros = (accion,)
+        query = "SELECT * FROM log_actividad WHERE accion LIKE %s"
+        parametros = (f"%{accion}%", )
     else:
         query = "SELECT * FROM log_actividad"
         parametros = ()

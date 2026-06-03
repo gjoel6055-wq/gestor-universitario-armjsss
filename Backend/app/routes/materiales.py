@@ -1,11 +1,11 @@
 from flask import Blueprint, request, jsonify
-from app.services.material_service import (
+from services.material_service import (
     registrar_nuevo_material,
     listar_materiales,
     modificar_material,
     eliminar_material
 )
-from app.services.auth_service import requiere_token
+from services.auth_service import requiere_token
 
 material_bp = Blueprint('material', __name__)
 

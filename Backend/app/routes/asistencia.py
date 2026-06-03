@@ -27,7 +27,7 @@ def validar_asistencia(token):
 
 
 @asistencia_bp.route('/enviar_mails_asistencia', methods=['POST'])
-@requiere_token()
+@requiere_token(rol_necesario='docente')
 def enviar_qr_curso():
     alumnos = obtener_alumnos_por_curso()
 
@@ -41,7 +41,7 @@ def enviar_qr_curso():
 
 
 @asistencia_bp.route('/asistencias_curso', methods=['GET'])
-@requiere_token()
+@requiere_token(rol_necesario='docente')
 def asistencias_estudiantes_curso():
     fecha = request.args.get('fecha')
 

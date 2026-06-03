@@ -1,6 +1,7 @@
-from flask import Blueprint, request, jsonify
-from app.services import equipo_service
-from app.services.auth_service import requiere_token
+from flask import Blueprint, request, jsonify, session
+from services import equipo_service
+from services.auth_service import requiere_token
+from services.log_service import registrar_log
 
 equipos_bp = Blueprint('equipos', __name__)
 

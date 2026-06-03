@@ -5,7 +5,7 @@ from app.services.auth_service import requiere_token
 log_bp = Blueprint("log", __name__)
 
 @log_bp.route('/historial_logs')
-@requiere_token()
+@requiere_token(rol_necesario='docente')
 def listar_logs():
     filtro_accion = request.args.get('accion')
 
@@ -17,7 +17,7 @@ def listar_logs():
     return jsonify({'historial': historial}), 200
 
 @log_bp.route('/logs/<int:id_log>')
-@requiere_token()
+@requiere_token(rol_necesario='docente')
 def buscar_log(id_log):
     log_buscado = log_por_id(id_log)
 

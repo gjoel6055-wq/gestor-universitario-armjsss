@@ -68,7 +68,6 @@ def obtener_alumnos_curso():
 
         cursor.execute(query, )
         alumnos = cursor.fetchall()
-        print(f"DEBUG: Se encontraron {len(alumnos)} alumnos")
         return alumnos
 
     except Exception as e:
