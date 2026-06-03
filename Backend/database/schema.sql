@@ -55,6 +55,15 @@ CREATE TABLE IF NOT EXISTS alumnos (
     FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS alumnos_cursos (
+    padron INT NOT NULL,
+    curso_id INT NOT NULL,
+    fecha_inscripcion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (padron, curso_id),
+    FOREIGN KEY (padron) REFERENCES alumnos(padron) ON DELETE CASCADE,
+    FOREIGN KEY (curso_id) REFERENCES cursos(curso_id) ON DELETE CASCADE
+);
+
 -- log_actividad no lleva deleted_at: es un registro de auditoría inmutable
 CREATE TABLE IF NOT EXISTS log_actividad (
     log_id INT AUTO_INCREMENT PRIMARY KEY,

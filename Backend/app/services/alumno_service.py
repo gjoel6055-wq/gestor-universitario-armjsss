@@ -3,7 +3,8 @@ from app.repositories.alumno_repository import (
     buscar_alumno_por_padron,
     crear_alumno_en_bd,
     actualizar_alumno_en_bd,
-    eliminar_alumno_en_bd
+    eliminar_alumno_en_bd,
+    obtener_cursos_del_alumno
 )
 from werkzeug.security import generate_password_hash
 
@@ -17,6 +18,8 @@ def obtener_todos_alumnos():
     """
     try:
         alumnos = obtener_todos_los_alumnos()
+        for a in alumnos:
+            a['cursos'] = obtener_cursos_del_alumno(a['padron'])
         return alumnos
     except Exception as e:
         print(f"Error al obtener alumnos: {e}")
@@ -38,6 +41,8 @@ def obtener_alumno(padron):
             return None
             
         alumno = buscar_alumno_por_padron(padron)
+        if alumno:
+            alumno['cursos'] = obtener_cursos_del_alumno(padron)
         return alumno
     except Exception as e:
         print(f"Error al obtener alumno por padrón: {e}")
@@ -101,6 +106,8 @@ def actualizar_alumno(padron, datos):
                      - apellidos (str, opcional): Nuevos apellidos
                      - email (str, opcional): Nuevo email
                      - password (str, opcional): Nueva contraseña
+                     - abandono (bool, opcional): Estado abandono
+                     - cursos (list, opcional): Cursos
         
     Returns:
         dict: Información del alumno actualizado o error si algo falla
@@ -110,9 +117,11 @@ def actualizar_alumno(padron, datos):
             return {'error': 'Padrón no especificado'}
         
         nombre = datos.get('nombre')
-        apellidos = datos.get('apellidos')
+        apellidos = datos.get('apellido') if datos.get('apellido') is not None else datos.get('apellidos')
         email = datos.get('email')
         password = datos.get('password')
+        abandono = datos.get('abandono')
+        cursos = datos.get('cursos')
         
         password_hash = None
         if password:
@@ -123,7 +132,9 @@ def actualizar_alumno(padron, datos):
             nombre=nombre,
             apellido=apellidos,
             email=email,
-            password_hash=password_hash
+            password_hash=password_hash,
+            abandono=abandono,
+            cursos=cursos
         )
         
         if resultado is True:
