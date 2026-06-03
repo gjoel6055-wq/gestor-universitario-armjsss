@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from app.services.auth_service import procesar_login, crear_nuevo_usuario, requiere_token
 from app.services.log_service import registrar_log
 import re
-from constants import REGEX_EMAIL
+from app.constants import REGEX_EMAIL
 
 auth_bp = Blueprint('auth', __name__)
 

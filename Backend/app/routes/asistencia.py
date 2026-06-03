@@ -1,7 +1,7 @@
 from app.services.qr_service import procesar_escaneo_qr
 from flask import Blueprint, request, jsonify
 from app.services.auth_service import requiere_token
-from services.asistencia_service import procesar_envio_masivo_asistencia, obtener_alumnos_por_curso, alumnos_asistencia_fecha
+from app.services.asistencia_service import procesar_envio_masivo_asistencia, obtener_alumnos_por_curso, alumnos_asistencia_fecha
 
 asistencia_bp = Blueprint('asistencia', __name__)
 

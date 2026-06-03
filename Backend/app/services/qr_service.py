@@ -4,7 +4,7 @@ import qrcode
 import datetime
 import io
 import time
-from constants import FRONT_BASE_URL
+from app.constants import FRONT_BASE_URL
 
 def procesar_escaneo_qr(qr_token):
     return registrar_asistencia(qr_token)
