@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, session
 from app.services import curso_service, log_service
-from services.auth_service import requiere_token
-from services.log_service import registrar_log
+from app.services.auth_service import requiere_token
+from app.services.log_service import registrar_log
 
 
 cursos_bp = Blueprint('cursos', __name__)

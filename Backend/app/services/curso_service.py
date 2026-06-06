@@ -21,9 +21,16 @@ def crear(datos):
         raise ValueError('El año es obligatorio')
     if datos['cuatrimestre'] not in ('1C', '2C'):
         raise ValueError('El cuatrimestre debe ser 1C o 2C')
-    anio = datos['anio']
-    if not isinstance(anio, int) or anio < 2000 or anio > 2100:
+
+    # Acepta tanto int como string numérico
+    try:
+        anio = int(datos['anio'])
+    except (ValueError, TypeError):
         raise ValueError('El año debe ser un número válido entre 2000 y 2100')
+    if anio < 2000 or anio > 2100:
+        raise ValueError('El año debe ser un número válido entre 2000 y 2100')
+    datos['anio'] = anio  # Normalizar siempre a int
+
     return curso_repository.insertar(datos)
 
 
@@ -37,18 +44,30 @@ def actualizar(curso_id, datos):
         raise ValueError('El año es obligatorio')
     if datos['cuatrimestre'] not in ('1C', '2C'):
         raise ValueError('El cuatrimestre debe ser 1C o 2C')
+
+    try:
+        anio = int(datos['anio'])
+    except (ValueError, TypeError):
+        raise ValueError('El año debe ser un número válido entre 2000 y 2100')
+    if anio < 2000 or anio > 2100:
+        raise ValueError('El año debe ser un número válido entre 2000 y 2100')
+    datos['anio'] = anio
+
     return curso_repository.actualizar(curso_id, datos)
+
 
 def actualizar_parcial(curso_id, datos):
     curso_actual = obtener_por_id(curso_id)
-
     if 'cuatrimestre' in datos and datos['cuatrimestre'] not in ('1C', '2C'):
         raise ValueError('El cuatrimestre debe ser 1C o 2C')
-
     if 'anio' in datos:
-        anio = datos['anio']
-        if not isinstance(anio, int) or anio < 2000 or anio > 2100:
+        try:
+            anio = int(datos['anio'])
+        except (ValueError, TypeError):
             raise ValueError('El año debe ser un número válido entre 2000 y 2100')
+        if anio < 2000 or anio > 2100:
+            raise ValueError('El año debe ser un número válido entre 2000 y 2100')
+        datos['anio'] = anio
 
     datos_actualizados = {
         'nombre':       datos.get('nombre',       curso_actual['nombre']),
@@ -56,7 +75,6 @@ def actualizar_parcial(curso_id, datos):
         'anio':         datos.get('anio',         curso_actual['anio']),
         'descripcion':  datos.get('descripcion',  curso_actual['descripcion'])
     }
-
     return curso_repository.actualizar(curso_id, datos_actualizados)
 
 
