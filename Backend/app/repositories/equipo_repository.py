@@ -9,19 +9,23 @@ def obtener_todos(curso_id=None):
         if curso_id:
             cursor.execute(
                 '''
-                SELECT * FROM equipos
-                WHERE curso_id = %s
-                AND deleted_at IS NULL
-                ORDER BY nombre
+                SELECT e.*, c.nombre AS curso_nombre
+                FROM equipos e
+                JOIN cursos c ON c.curso_id = e.curso_id
+                WHERE e.curso_id = %s
+                AND e.deleted_at IS NULL
+                ORDER BY e.nombre
                 ''',
                 (curso_id,)
             )
         else:
             cursor.execute(
                 '''
-                SELECT * FROM equipos
-                WHERE deleted_at IS NULL
-                ORDER BY nombre
+                SELECT e.*, c.nombre AS curso_nombre
+                FROM equipos e
+                JOIN cursos c ON c.curso_id = e.curso_id
+                WHERE e.deleted_at IS NULL
+                ORDER BY e.nombre
                 '''
             )
         return cursor.fetchall()
