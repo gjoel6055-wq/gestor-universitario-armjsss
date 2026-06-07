@@ -4,7 +4,7 @@ from app.services.tipo_evaluacion_service import (
      modificar_tipo_servicio,
      borrar_tipo_servicio
 )
-from services.auth_service import requiere_token
+from app.services.auth_service import requiere_token
 
 tipos_evaluacion_bp = Blueprint('tipos_evaluacion', __name__)
 

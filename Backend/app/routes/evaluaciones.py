@@ -4,7 +4,7 @@ from app.services.evaluacion_service import (
     modificar_evaluacion_servicio,
     borrar_evaluacion_servicio
 )
-from services.auth_service import requiere_token
+from app.services.auth_service import requiere_token
 
 from app.db import get_connection
 
