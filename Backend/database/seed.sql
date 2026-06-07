@@ -254,14 +254,14 @@ INSERT INTO materiales (curso_id, titulo, descripcion, archivo_url, tipo, public
 -- ══════════════════════════════════════════════════════════════════
 -- LOG_ACTIVIDAD
 -- ══════════════════════════════════════════════════════════════════
-INSERT INTO log_actividad (usuario_id, accion, ip) VALUES
-(1, 'Inicio sesion',              '192.168.1.10'),
-(1, 'Creó un curso nuevo IDS 2026 1C',    '192.168.1.10'),
-(1, 'crear evaluacion Parcial 1', '192.168.1.10'),
-(2, 'Inicio sesion',              '192.168.1.11'),
-(6, 'Inicio sesion',              '192.168.1.20'),
-(7, 'Inicio sesion',              '192.168.1.21'),
-(8, 'Inicio sesion',              '192.168.1.22');
+INSERT INTO log_actividad (usuario_id, email, accion, ip) VALUES
+(1, 'garcia.carlos@fiuba.edu.ar', 'Inicio sesion',              '192.168.1.10'),
+(1, 'garcia.carlos@fiuba.edu.ar', 'Creó un curso nuevo IDS 2026 1C',    '192.168.1.10'),
+(1, 'garcia.carlos@fiuba.edu.ar', 'crear evaluacion Parcial 1', '192.168.1.10'),
+(2, 'martinez.ana@fiuba.edu.ar',  'Inicio sesion',              '192.168.1.11'),
+(6, 'perez.lucas@fi.uba.ar',      'Inicio sesion',              '192.168.1.20'),
+(7, 'gomez.sofia@fi.uba.ar',      'Inicio sesion',              '192.168.1.21'),
+(8, 'diaz.martin@fi.uba.ar',      'Inicio sesion',              '192.168.1.22');
 
 
 -- ══════════════════════════════════════════════════════════════════

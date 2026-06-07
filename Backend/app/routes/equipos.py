@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, session
 from app.services import equipo_service
 from app.services.auth_service import requiere_token
-from app.services.log_service import registrar_log
+from app.services.log_service import registrar_actividad
 
 equipos_bp = Blueprint('equipos', __name__)
 
@@ -39,9 +39,10 @@ def crear_equipo():
         equipo = equipo_service.crear(datos)
 
         ip_usuario = request.remote_addr
-        usuario_id = session.get('usuario_id')
+        usuario_id = getattr(request, 'usuario_id', None)
         accion = "Creó un nuevo equipo"
-        registrar_log(usuario_id, accion, ip_usuario)
+        email_usuario = getattr(request, 'email_usuario', None)
+        registrar_actividad(usuario_id, accion, ip_usuario, email_usuario)
 
         return jsonify(equipo), 201
     except ValueError as e:
@@ -67,9 +68,10 @@ def actualizar_equipo(equipo_id):
         equipo = equipo_service.actualizar(equipo_id, datos)
 
         ip_usuario = request.remote_addr
-        usuario_id = session.get('usuario_id')
+        usuario_id = getattr(request, 'usuario_id', None)
+        email_usuario = getattr(request, 'email_usuario', None)
         accion = f"Actualizó por completo el equipo de ID: {equipo_id}"
-        registrar_log(usuario_id, accion, ip_usuario)
+        registrar_actividad(usuario_id, accion, ip_usuario, email_usuario)
 
         return jsonify(equipo), 200
     except ValueError as e:
@@ -92,9 +94,10 @@ def eliminar_equipo(equipo_id):
         equipo_service.eliminar(equipo_id)
 
         ip_usuario = request.remote_addr
-        usuario_id = session.get('usuario_id')
+        usuario_id = getattr(request, 'usuario_id', None)
+        email_usuario = getattr(request, 'email_usuario', None)
         accion = f"Eliminó el equipo ID: {equipo_id}"
-        registrar_log(usuario_id, accion, ip_usuario)
+        registrar_actividad(usuario_id, accion, ip_usuario, email_usuario)
 
         return jsonify({'mensaje': f'Equipo {equipo_id} eliminado correctamente'}), 200
     except ValueError as e:

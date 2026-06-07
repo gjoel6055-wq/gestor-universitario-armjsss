@@ -1,12 +1,12 @@
 from app.db import get_connection
 
-def registrar_log(usuario_id, ip, accion):
+def registrar_log(usuario_id, accion, ip, email=None):
     conn = get_connection()
     cursor = conn.cursor()
-    query = "INSERT INTO log_actividad (usuario_id, accion, ip) VALUES (%s,%s,%s)"
+    query = "INSERT INTO log_actividad (usuario_id, email, accion, ip) VALUES (%s,%s,%s,%s)"
 
     try:
-        cursor.execute(query, (usuario_id, ip, accion))
+        cursor.execute(query, (usuario_id, email, accion, ip, ))
         conn.commit()
         return True
     except Exception as e:
@@ -26,7 +26,7 @@ def listar_logs(accion=None):
         query = "SELECT * FROM log_actividad WHERE accion LIKE %s"
         parametros = (f"%{accion}%", )
     else:
-        query = "SELECT * FROM log_actividad"
+        query = "SELECT * FROM log_actividad ORDER BY fecha_actividad DESC "
         parametros = ()
 
     try:

@@ -54,7 +54,7 @@ def registrar_asistencia(qr_token):
         conn.close()
 
 
-def obtener_alumnos_curso():
+def obtener_alumnos_curso(curso_id):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     try:
@@ -62,11 +62,13 @@ def obtener_alumnos_curso():
                 SELECT a.padron, u.nombre, u.email
                 FROM usuarios u
                 JOIN alumnos a ON u.usuario_id = a.usuario_id
+                JOIN alumnos_cursos ac ON a.padron = ac.padron
                 WHERE a.abandono = 0 
                   AND u.rol = 'alumno' 
+                  AND ac.curso_id = %s
                 """
 
-        cursor.execute(query, )
+        cursor.execute(query, (curso_id,))
         alumnos = cursor.fetchall()
         return alumnos
 
