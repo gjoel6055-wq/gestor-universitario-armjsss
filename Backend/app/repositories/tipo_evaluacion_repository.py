@@ -103,4 +103,4 @@ def borrar_tipo_bd(tipo_id):
         return False
     finally:
         cursor.close()
-        conn.close()<<<<<<< Updated upstream
+        conn.close()
