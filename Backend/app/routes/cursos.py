@@ -1,5 +1,5 @@
-from flask import Blueprint, request, jsonify
-from app.services import curso_service
+from flask import Blueprint, request, jsonify, session
+from app.services import curso_service, log_service
 from app.services.auth_service import requiere_token
 from app.services.log_service import registrar_actividad
 
