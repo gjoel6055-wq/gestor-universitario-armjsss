@@ -1,44 +1,106 @@
 from flask import Blueprint, request, jsonify
-from app.services.tipo_evaluacion_service import (
-     crear_tipo_servicio,
-     modificar_tipo_servicio,
-     borrar_tipo_servicio
-)
-from services.auth_service import requiere_token
+from app.services.auth_service import requiere_token
+from app.services.log_service import registrar_log
+from app.services import tipo_evaluacion_service
 
 tipos_evaluacion_bp = Blueprint('tipos_evaluacion', __name__)
 
+
+@tipos_evaluacion_bp.route('/tipos-evaluacion', methods=['GET'])
+@requiere_token()
+def lista():
+    tipos = tipo_evaluacion_service.obtener_tipos()
+    return jsonify(tipos), 200
+
+
+@tipos_evaluacion_bp.route('/tipos-evaluacion/<int:tipo_id>', methods=['GET'])
+@requiere_token()
+def detalle(tipo_id):
+    tipo = tipo_evaluacion_service.obtener_tipo(tipo_id)
+    if tipo is None:
+        return jsonify({'error': f'Tipo de evaluación {tipo_id} no encontrado'}), 404
+    return jsonify(tipo), 200
+
+
 @tipos_evaluacion_bp.route('/tipos-evaluacion', methods=['POST'])
-@requiere_token()
-def crear_tipo_evaluacion():
+@requiere_token('docente')
+def crear():
     datos = request.get_json()
-    nombre = datos.get('nombre')
-    
-    if not nombre:
-        return jsonify({'error': 'El campo nombre es obligatorio'}), 400
+    if not datos:
+        return jsonify({'error': 'El cuerpo de la solicitud no puede estar vacío'}), 400
 
-    resultado = crear_tipo_servicio(datos)
-    return jsonify({'mensaje': 'Tipo de evaluación creado con éxito.','datos': resultado}), 201 
+    resultado = tipo_evaluacion_service.crear_tipo(datos)
 
-@tipos_evaluacion_bp.route('/tipos-evaluacion/<int:id>', methods=['PUT', 'DELETE'])
-@requiere_token()
-def gestionar_tipo_evaluacion(id):
-    if request.method == 'PUT':
-        datos = request.get_json()
-        nombre = datos.get('nombre')
+    if resultado == 'campos_incompletos':
+        return jsonify({'error': 'El nombre es obligatorio'}), 400
+    if resultado is None:
+        return jsonify({'error': 'Ocurrió un error al crear el tipo de evaluación'}), 500
 
-        if not nombre:
-            return jsonify ({'error': 'El campo nombre es obligatorio para actualizar'}), 400
+    registrar_log(
+        request.usuario_id,
+        f"Creó tipo de evaluación: {resultado['nombre']}",
+        request.remote_addr
+    )
+    return jsonify(resultado), 201
 
-        encontrado = modificar_tipo_servicio(id,datos)
-        if not encontrado:
-            return jsonify ({'error': f'No se encontró el tipo de evaluación con ID {id}'}), 404
 
-        return jsonify ({'mensaje': f'Tipo de evaluación {id} actualizada con éxito.'}), 200
+@tipos_evaluacion_bp.route('/tipos-evaluacion/<int:tipo_id>', methods=['PUT'])
+@requiere_token('docente')
+def actualizar(tipo_id):
+    datos = request.get_json()
+    if not datos:
+        return jsonify({'error': 'El cuerpo de la solicitud no puede estar vacío'}), 400
 
-    if request.method == 'DELETE':
-        encontrado=borrar_tipo_servicio(id)
-        if not encontrado:
-            return jsonify({'error': f'No se encontró el tipo de evaluación con ID {id}'}), 404
+    resultado = tipo_evaluacion_service.actualizar_tipo(tipo_id, datos)
 
-        return jsonify({'mensaje': f'Tipo de evaluación {id} eliminado correctamente'}), 200
+    if resultado == 'no_encontrado':
+        return jsonify({'error': f'Tipo de evaluación {tipo_id} no encontrado'}), 404
+    if resultado == 'campos_incompletos':
+        return jsonify({'error': 'El nombre es obligatorio'}), 400
+    if resultado is None:
+        return jsonify({'error': 'Ocurrió un error al actualizar'}), 500
+
+    registrar_log(
+        request.usuario_id,
+        f"Actualizó tipo de evaluación {tipo_id}",
+        request.remote_addr
+    )
+    return jsonify(resultado), 200
+
+
+@tipos_evaluacion_bp.route('/tipos-evaluacion/<int:tipo_id>', methods=['PATCH'])
+@requiere_token('docente')
+def actualizar_parcial(tipo_id):
+    datos = request.get_json()
+    if not datos:
+        return jsonify({'error': 'El cuerpo de la solicitud no puede estar vacío'}), 400
+
+    resultado = tipo_evaluacion_service.actualizar_tipo_parcial(tipo_id, datos)
+
+    if resultado == 'no_encontrado':
+        return jsonify({'error': f'Tipo de evaluación {tipo_id} no encontrado'}), 404
+    if resultado is None:
+        return jsonify({'error': 'Ocurrió un error al actualizar'}), 500
+
+    registrar_log(
+        request.usuario_id,
+        f"Actualizó parcialmente tipo de evaluación {tipo_id}",
+        request.remote_addr
+    )
+    return jsonify(resultado), 200
+
+
+@tipos_evaluacion_bp.route('/tipos-evaluacion/<int:tipo_id>', methods=['DELETE'])
+@requiere_token('docente')
+def eliminar(tipo_id):
+    resultado = tipo_evaluacion_service.eliminar_tipo(tipo_id)
+
+    if resultado == 'no_encontrado':
+        return jsonify({'error': f'Tipo de evaluación {tipo_id} no encontrado'}), 404
+
+    registrar_log(
+        request.usuario_id,
+        f"Eliminó tipo de evaluación {tipo_id}",
+        request.remote_addr
+    )
+    return jsonify({'mensaje': f'Tipo de evaluación {tipo_id} eliminado correctamente'}), 200
