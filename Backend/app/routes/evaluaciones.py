@@ -64,7 +64,7 @@ def actualizar(evaluacion_id):
         ip_usuario = request.remote_addr
         usuario_id = getattr(request, 'usuario_id', None)
         email_usuario = getattr(request, 'email_usuario', None)
-        accion = f"Actualizó completamente la evaluación con ID: {evaluacion_id}"
+        accion = f"Modificó la evaluación la evaluación con ID: {evaluacion_id}"
         registrar_actividad(usuario_id, accion, ip_usuario, email_usuario)
 
         return jsonify(resultado), 200
