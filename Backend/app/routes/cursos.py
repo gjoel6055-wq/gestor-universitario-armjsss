@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify
 from app.services import curso_service
 from app.services.auth_service import requiere_token
 from app.services.log_service import registrar_actividad
@@ -40,8 +40,9 @@ def crear_curso():
 
         ip_usuario = request.remote_addr
         usuario_id = getattr(request, 'usuario_id', None)
+        email_usuario = getattr(request, 'email_usuario', None)
         accion = "Creó un curso nuevo"
-        registrar_actividad(usuario_id, accion, ip_usuario)
+        registrar_actividad(usuario_id, accion, ip_usuario, email_usuario)
 
         return jsonify(curso), 201
     except ValueError as e:

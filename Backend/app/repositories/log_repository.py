@@ -41,25 +41,3 @@ def listar_logs(accion=None):
     finally:
         cursor.close()
         conn.close()
-
-def buscar_log_especifico(id_log):
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
-    query = "SELECT * FROM log_actividad WHERE log_id = %s"
-
-    try:
-        cursor.execute(query, (id_log, ))
-        log_buscado = cursor.fetchone()
-
-        if log_buscado:
-            return log_buscado
-
-        return 'no existe log con ese id'
-
-    except Exception as e:
-        print(f"Error al listar logs: {e}")
-        return False
-    finally:
-        cursor.close()
-        conn.close()
-
