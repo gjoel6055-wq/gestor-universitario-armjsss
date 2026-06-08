@@ -6,10 +6,11 @@ import os
 from app.repositories.usuario_repository import buscar_usuario_por_email, ingresar_nuevo_usuario
 from werkzeug.security import check_password_hash, generate_password_hash
 
-def generar_token(usuario_id, rol):
+def generar_token(usuario_id, rol, email):
     payload = {
         'id': usuario_id,
         'rol': rol,
+        'email': email,
         'exp': datetime.now(timezone.utc) + timedelta(hours=8)
     }
     return jwt.encode(payload, os.getenv('SECRET_KEY'), algorithm='HS256')
@@ -23,7 +24,7 @@ def procesar_login(email, password):
     if not check_password_hash(datos_usuario['password_hash'], password):
         return 'contrasena_incorrecta'
 
-    token_jwt = generar_token(datos_usuario['usuario_id'], datos_usuario['rol'])
+    token_jwt = generar_token(datos_usuario['usuario_id'], datos_usuario['rol'], datos_usuario['email'])
 
     return {
         "token": token_jwt,
@@ -61,6 +62,7 @@ def requiere_token(rol_necesario=None):
 
                 request.usuario_id = datos_token['id']
                 request.usuario_rol = datos_token['rol']
+                request.email_usuario = datos_token.get('email')
 
             except jwt.ExpiredSignatureError:
                 return jsonify({'error': 'El token expiró. Volvé a iniciar sesión.'}), 401

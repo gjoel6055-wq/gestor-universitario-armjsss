@@ -1,80 +1,130 @@
-from flask import Blueprint, request, jsonify, session
-from app.services.evaluacion_service import (
-    crear_evaluacion_servicio,
-    modificar_evaluacion_servicio,
-    borrar_evaluacion_servicio
-)
+from flask import Blueprint, request, jsonify
 from app.services.auth_service import requiere_token
-
-from app.db import get_connection
+from app.services.log_service import registrar_actividad
+from app.services import evaluacion_service
 
 evaluaciones_bp = Blueprint('evaluaciones', __name__)
 
+
 @evaluaciones_bp.route('/evaluaciones', methods=['GET'])
 @requiere_token()
-def listar_evaluaciones():
+def lista():
     try:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute('''
-            SELECT e.evaluacion_id, e.tipo_id, e.curso_id, e.nombre, e.fecha, e.peso, e.descripcion,
-                   te.nombre AS tipo_nombre, c.nombre AS curso_nombre
-            FROM evaluaciones e
-            JOIN tipos_evaluacion te ON e.tipo_id = te.tipo_id
-            JOIN cursos c ON e.curso_id = c.curso_id
-            WHERE e.deleted_at IS NULL
-            ORDER BY e.fecha DESC
-        ''')
-        evaluaciones = cursor.fetchall() or []
-        cursor.close()
-        conn.close()
+        curso_id = request.args.get('curso_id', type=int)
+        evaluaciones = evaluacion_service.obtener_evaluaciones(curso_id=curso_id)
         return jsonify(evaluaciones), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+@evaluaciones_bp.route('/evaluaciones/<int:evaluacion_id>', methods=['GET'])
+@requiere_token()
+def detalle(evaluacion_id):
+    try:
+        evaluacion = evaluacion_service.obtener_evaluacion(evaluacion_id)
+        return jsonify(evaluacion), 200
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @evaluaciones_bp.route('/evaluaciones', methods=['POST'])
-@requiere_token()
-def crear_evaluacion():
-    datos = request.get_json()
-    tipo_id = datos.get('tipo_id')
-    curso_id = datos.get('curso_id')
-    nombre = datos.get('nombre')
-    fecha = datos.get('fecha')
-    peso = datos.get('peso')
-
-    if not tipo_id or not curso_id or not nombre or not fecha or peso is None:
-        return jsonify({'error': 'Faltan datos obligatorios (tipo_id, curso_id, nombre, fecha o peso)'}), 400
-        
-    resultado = crear_evaluacion_servicio(datos) 
-    
-    if not resultado:
-        return jsonify({'error': 'No se pudo crear la evaluación. Verifique los datos ingresados.'}), 400
-        
-    return jsonify({'mensaje': 'Evaluación creada con éxito.', 'datos': resultado}), 201
-
-@evaluaciones_bp.route('/evaluaciones/<int:id>', methods=['PUT', 'DELETE'])
-@requiere_token()
-def gestionar_evaluacion(id):
-    if request.method == 'PUT':
+@requiere_token('docente')
+def crear():
+    try:
         datos = request.get_json()
-        tipo_id = datos.get('tipo_id')
-        curso_id = datos.get('curso_id')
-        nombre = datos.get('nombre')
-        fecha = datos.get('fecha')
-        peso = datos.get('peso')
+        if not datos:
+            return jsonify({'error': 'El cuerpo de la solicitud no puede estar vacío'}), 400
+        resultado = evaluacion_service.crear_evaluacion(datos)
 
-        if not tipo_id or not curso_id or not nombre or not fecha or peso is None:
-            return jsonify({'error': 'Faltan datos obligatorios para actualizar la evaluación'}), 400
+        ip_usuario = request.remote_addr
+        usuario_id = getattr(request, 'usuario_id', None)
+        email_usuario = getattr(request, 'email_usuario', None)
+        accion = f"Creó evaluación: {resultado['nombre']} en curso {resultado['curso_id']}"
+        registrar_actividad(usuario_id, accion, ip_usuario, email_usuario)
 
-        exito = modificar_evaluacion_servicio(id, datos)
-        if not exito:
-            return jsonify({'error': f'No se pudo actualizar la evaluación {id}. Puede que esté eliminada o no exista.'}), 404
-            
-        return jsonify({'mensaje': f'Evaluación {id} actualizada con éxito.'}), 200
-        
-    if request.method == 'DELETE':
-        exito = borrar_evaluacion_servicio(id)
-        if not exito:
-            return jsonify({'error': f'No se pudo eliminar la evaluación {id}.'}), 400
-            
-        return jsonify({'mensaje': f'Evaluación {id} eliminada correctamente (borrado logico).'}), 200
+        return jsonify(resultado), 201
+    except ValueError as e:
+        codigo = 400
+        return jsonify({'error': str(e)}), codigo
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@evaluaciones_bp.route('/evaluaciones/<int:evaluacion_id>', methods=['PUT'])
+@requiere_token('docente')
+def actualizar(evaluacion_id):
+    try:
+        datos = request.get_json()
+        if not datos:
+            return jsonify({'error': 'El cuerpo de la solicitud no puede estar vacío'}), 400
+        resultado = evaluacion_service.actualizar_evaluacion(evaluacion_id, datos)
+
+        ip_usuario = request.remote_addr
+        usuario_id = getattr(request, 'usuario_id', None)
+        email_usuario = getattr(request, 'email_usuario', None)
+        accion = f"Actualizó completamente la evaluación con ID: {evaluacion_id}"
+        registrar_actividad(usuario_id, accion, ip_usuario, email_usuario)
+
+        return jsonify(resultado), 200
+    except ValueError as e:
+        mensaje = str(e).lower()
+        if 'no encontrado' in mensaje:
+            codigo = 404
+        else:
+            codigo = 400
+        return jsonify({'error': str(e)}), codigo
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@evaluaciones_bp.route('/evaluaciones/<int:evaluacion_id>', methods=['PATCH'])
+@requiere_token('docente')
+def actualizar_parcial(evaluacion_id):
+    try:
+        datos = request.get_json()
+        if not datos:
+            return jsonify({'error': 'El cuerpo de la solicitud no puede estar vacío'}), 400
+        resultado = evaluacion_service.actualizar_evaluacion_parcial(evaluacion_id, datos)
+
+        ip_usuario = request.remote_addr
+        usuario_id = getattr(request, 'usuario_id', None)
+        email_usuario = getattr(request, 'email_usuario', None)
+        accion = f"Modificó la evaluación con ID: {evaluacion_id}"
+        registrar_actividad(usuario_id, accion, ip_usuario, email_usuario)
+
+        return jsonify(resultado), 200
+    except ValueError as e:
+        mensaje = str(e).lower()
+        if 'no encontrado' in mensaje:
+            codigo = 404
+        else:
+            codigo = 400
+        return jsonify({'error': str(e)}), codigo
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@evaluaciones_bp.route('/evaluaciones/<int:evaluacion_id>', methods=['DELETE'])
+@requiere_token('docente')
+def eliminar(evaluacion_id):
+    try:
+        resultado = evaluacion_service.eliminar_evaluacion(evaluacion_id)
+
+        ip_usuario = request.remote_addr
+        usuario_id = getattr(request, 'usuario_id', None)
+        email_usuario = getattr(request, 'email_usuario', None)
+        accion = f"Eliminó la evaluación con ID: {evaluacion_id}"
+        registrar_actividad(usuario_id, accion, ip_usuario, email_usuario)
+
+        return jsonify({'mensaje': f'Evaluación {evaluacion_id} eliminada correctamente'}), 200
+    except ValueError as e:
+        mensaje = str(e).lower()
+        if 'no encontrado' in mensaje:
+            codigo = 404
+        else:
+            codigo = 400
+        return jsonify({'error': str(e)}), codigo
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

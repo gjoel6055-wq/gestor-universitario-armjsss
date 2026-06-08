@@ -68,6 +68,7 @@ CREATE TABLE IF NOT EXISTS alumnos_cursos (
 CREATE TABLE IF NOT EXISTS log_actividad (
     log_id INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT,
+    email VARCHAR(255),
     accion VARCHAR(255) NOT NULL,
     fecha_actividad DATETIME DEFAULT CURRENT_TIMESTAMP,
     ip VARCHAR(45),

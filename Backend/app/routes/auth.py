@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 from app.services.auth_service import procesar_login, crear_nuevo_usuario, requiere_token
 from app.services.log_service import registrar_log
 import re
@@ -31,8 +31,9 @@ def login():
         return jsonify({'error': 'El email ingresado no se encuentra registrado.'}), 404
 
     usuario_id = datos_usuario['usuario_id']
+    email_usuario = datos_usuario['email']
     accion = "Inicio sesion"
-    registrar_log(usuario_id, accion, ip_usuario)
+    registrar_log(usuario_id, accion, ip_usuario, email_usuario)
 
     return jsonify({
         'mensaje': 'Login exitoso',
@@ -66,8 +67,9 @@ def register():
 
     if situacion is True:
         ip_usuario = request.remote_addr
+        email_usuario = email
         accion = f"Nuevo usuario registrado con el email: {email}"
-        registrar_log(None, accion, ip_usuario)
+        registrar_log(None, accion, ip_usuario, email_usuario)
         return jsonify({'mensaje': 'Se creó el usuario con exito.'}), 201
 
     return jsonify({'error': 'Ocurrio un error al crear el usuario, intentelo mas tarde.'}), 500

@@ -29,8 +29,8 @@ def procesar_envio_masivo_asistencia(lista_alumnos):
 
     return resultados
 
-def obtener_alumnos_por_curso():
-    return obtener_alumnos_curso()
+def obtener_alumnos_por_curso(curso_id):
+    return obtener_alumnos_curso(curso_id)
 
 
 def alumnos_asistencia_fecha(fecha_str):

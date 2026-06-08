@@ -29,10 +29,16 @@ def validar_asistencia(token):
 @asistencia_bp.route('/enviar_mails_asistencia', methods=['POST'])
 @requiere_token(rol_necesario='docente')
 def enviar_qr_curso():
-    alumnos = obtener_alumnos_por_curso()
+    data = request.get_json() or {}
+    curso_id = data.get('curso_id')
+    
+    if not curso_id:
+        return jsonify({"error": "Falta el curso_id"}), 400
 
-    if alumnos is None:
-        return jsonify({"error":'No se pudo realizar el envio de emails'}), 400
+    alumnos = obtener_alumnos_por_curso(curso_id)
+
+    if alumnos is None or len(alumnos) == 0:
+        return jsonify({"error":'No se pudo realizar el envio de emails o no hay alumnos en el curso'}), 400
 
     stats = procesar_envio_masivo_asistencia(alumnos)
 
