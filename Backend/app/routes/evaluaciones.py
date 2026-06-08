@@ -1,80 +1,107 @@
-from flask import Blueprint, request, jsonify, session
-from app.services.evaluacion_service import (
-    crear_evaluacion_servicio,
-    modificar_evaluacion_servicio,
-    borrar_evaluacion_servicio
-)
-from services.auth_service import requiere_token
-
-from app.db import get_connection
+from flask import Blueprint, request, jsonify
+from app.services.auth_service import requiere_token
+from app.services.log_service import registrar_log
+from app.services import evaluacion_service
 
 evaluaciones_bp = Blueprint('evaluaciones', __name__)
 
+
 @evaluaciones_bp.route('/evaluaciones', methods=['GET'])
 @requiere_token()
-def listar_evaluaciones():
-    try:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute('''
-            SELECT e.evaluacion_id, e.tipo_id, e.curso_id, e.nombre, e.fecha, e.peso, e.descripcion,
-                   te.nombre AS tipo_nombre, c.nombre AS curso_nombre
-            FROM evaluaciones e
-            JOIN tipos_evaluacion te ON e.tipo_id = te.tipo_id
-            JOIN cursos c ON e.curso_id = c.curso_id
-            WHERE e.deleted_at IS NULL
-            ORDER BY e.fecha DESC
-        ''')
-        evaluaciones = cursor.fetchall() or []
-        cursor.close()
-        conn.close()
-        return jsonify(evaluaciones), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+def lista():
+    curso_id = request.args.get('curso_id', type=int)
+    evaluaciones = evaluacion_service.obtener_evaluaciones(curso_id=curso_id)
+    return jsonify(evaluaciones), 200
+
+
+@evaluaciones_bp.route('/evaluaciones/<int:evaluacion_id>', methods=['GET'])
+@requiere_token()
+def detalle(evaluacion_id):
+    evaluacion = evaluacion_service.obtener_evaluacion(evaluacion_id)
+    if evaluacion is None:
+        return jsonify({'error': f'Evaluación {evaluacion_id} no encontrada'}), 404
+    return jsonify(evaluacion), 200
+
 
 @evaluaciones_bp.route('/evaluaciones', methods=['POST'])
-@requiere_token()
-def crear_evaluacion():
+@requiere_token('docente')
+def crear():
     datos = request.get_json()
-    tipo_id = datos.get('tipo_id')
-    curso_id = datos.get('curso_id')
-    nombre = datos.get('nombre')
-    fecha = datos.get('fecha')
-    peso = datos.get('peso')
+    if not datos:
+        return jsonify({'error': 'El cuerpo de la solicitud no puede estar vacío'}), 400
 
-    if not tipo_id or not curso_id or not nombre or not fecha or peso is None:
-        return jsonify({'error': 'Faltan datos obligatorios (tipo_id, curso_id, nombre, fecha o peso)'}), 400
-        
-    resultado = crear_evaluacion_servicio(datos) 
-    
-    if not resultado:
-        return jsonify({'error': 'No se pudo crear la evaluación. Verifique los datos ingresados.'}), 400
-        
-    return jsonify({'mensaje': 'Evaluación creada con éxito.', 'datos': resultado}), 201
+    resultado = evaluacion_service.crear_evaluacion(datos)
 
-@evaluaciones_bp.route('/evaluaciones/<int:id>', methods=['PUT', 'DELETE'])
-@requiere_token()
-def gestionar_evaluacion(id):
-    if request.method == 'PUT':
-        datos = request.get_json()
-        tipo_id = datos.get('tipo_id')
-        curso_id = datos.get('curso_id')
-        nombre = datos.get('nombre')
-        fecha = datos.get('fecha')
-        peso = datos.get('peso')
+    if resultado == 'campos_incompletos':
+        return jsonify({'error': 'Nombre, tipo_id, curso_id, fecha y peso son obligatorios'}), 400
+    if resultado is None:
+        return jsonify({'error': 'Ocurrió un error al crear la evaluación'}), 500
 
-        if not tipo_id or not curso_id or not nombre or not fecha or peso is None:
-            return jsonify({'error': 'Faltan datos obligatorios para actualizar la evaluación'}), 400
+    registrar_log(
+        request.usuario_id,
+        f"Creó evaluación: {resultado['nombre']} en curso {resultado['curso_id']}",
+        request.remote_addr
+    )
+    return jsonify(resultado), 201
 
-        exito = modificar_evaluacion_servicio(id, datos)
-        if not exito:
-            return jsonify({'error': f'No se pudo actualizar la evaluación {id}. Puede que esté eliminada o no exista.'}), 404
-            
-        return jsonify({'mensaje': f'Evaluación {id} actualizada con éxito.'}), 200
-        
-    if request.method == 'DELETE':
-        exito = borrar_evaluacion_servicio(id)
-        if not exito:
-            return jsonify({'error': f'No se pudo eliminar la evaluación {id}.'}), 400
-            
-        return jsonify({'mensaje': f'Evaluación {id} eliminada correctamente (borrado logico).'}), 200
+
+@evaluaciones_bp.route('/evaluaciones/<int:evaluacion_id>', methods=['PUT'])
+@requiere_token('docente')
+def actualizar(evaluacion_id):
+    datos = request.get_json()
+    if not datos:
+        return jsonify({'error': 'El cuerpo de la solicitud no puede estar vacío'}), 400
+
+    resultado = evaluacion_service.actualizar_evaluacion(evaluacion_id, datos)
+
+    if resultado == 'no_encontrado':
+        return jsonify({'error': f'Evaluación {evaluacion_id} no encontrada'}), 404
+    if resultado == 'campos_incompletos':
+        return jsonify({'error': 'Nombre, tipo_id, curso_id, fecha y peso son obligatorios'}), 400
+    if resultado is None:
+        return jsonify({'error': 'Ocurrió un error al actualizar'}), 500
+
+    registrar_log(
+        request.usuario_id,
+        f"Actualizó evaluación {evaluacion_id}",
+        request.remote_addr
+    )
+    return jsonify(resultado), 200
+
+
+@evaluaciones_bp.route('/evaluaciones/<int:evaluacion_id>', methods=['PATCH'])
+@requiere_token('docente')
+def actualizar_parcial(evaluacion_id):
+    datos = request.get_json()
+    if not datos:
+        return jsonify({'error': 'El cuerpo de la solicitud no puede estar vacío'}), 400
+
+    resultado = evaluacion_service.actualizar_evaluacion_parcial(evaluacion_id, datos)
+
+    if resultado == 'no_encontrado':
+        return jsonify({'error': f'Evaluación {evaluacion_id} no encontrada'}), 404
+    if resultado is None:
+        return jsonify({'error': 'Ocurrió un error al actualizar'}), 500
+
+    registrar_log(
+        request.usuario_id,
+        f"Actualizó parcialmente evaluación {evaluacion_id}",
+        request.remote_addr
+    )
+    return jsonify(resultado), 200
+
+
+@evaluaciones_bp.route('/evaluaciones/<int:evaluacion_id>', methods=['DELETE'])
+@requiere_token('docente')
+def eliminar(evaluacion_id):
+    resultado = evaluacion_service.eliminar_evaluacion(evaluacion_id)
+
+    if resultado == 'no_encontrado':
+        return jsonify({'error': f'Evaluación {evaluacion_id} no encontrada'}), 404
+
+    registrar_log(
+        request.usuario_id,
+        f"Eliminó evaluación {evaluacion_id}",
+        request.remote_addr
+    )
+    return jsonify({'mensaje': f'Evaluación {evaluacion_id} eliminada correctamente'}), 200
