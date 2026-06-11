@@ -1,10 +1,13 @@
 import jwt
+import logging
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from flask import request, jsonify
-import os
+from app.constants import SECRET_KEY
 from app.repositories.usuario_repository import buscar_usuario_por_email, ingresar_nuevo_usuario
 from werkzeug.security import check_password_hash, generate_password_hash
+
+logger = logging.getLogger(__name__)
 
 def generar_token(usuario_id, rol, email):
     payload = {
@@ -13,7 +16,7 @@ def generar_token(usuario_id, rol, email):
         'email': email,
         'exp': datetime.now(timezone.utc) + timedelta(hours=8)
     }
-    return jwt.encode(payload, os.getenv('SECRET_KEY'), algorithm='HS256')
+    return jwt.encode(payload, SECRET_KEY, algorithm='HS256')
 
 def procesar_login(email, password):
     datos_usuario = buscar_usuario_por_email(email)
@@ -58,7 +61,7 @@ def requiere_token(rol_necesario=None):
             token = token.split(" ")[1]
 
             try:
-                datos_token = jwt.decode(token, os.getenv("SECRET_KEY"), algorithms=['HS256'])
+                datos_token = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
 
                 request.usuario_id = datos_token['id']
                 request.usuario_rol = datos_token['rol']

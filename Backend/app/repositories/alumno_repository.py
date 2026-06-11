@@ -1,184 +1,195 @@
-from app.db import get_connection
+import logging
+from app.db import ejecutar_consulta, ejecutar_mutacion
+
+logger = logging.getLogger(__name__)
+
+
+SQL_BASE_ALUMNOS = """
+    SELECT a.padron,
+           a.abandono,
+           u.usuario_id,
+           u.nombre,
+           u.apellido,
+           u.email,
+           u.fecha_registro
+    FROM alumnos a
+    JOIN usuarios u ON a.usuario_id = u.usuario_id
+"""
 
 
 def obtener_todos_los_alumnos():
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    """
+    Obtiene la lista de todos los alumnos registrados.
+    """
     try:
-        query = '''
-            SELECT a.padron,
-                   a.abandono,
-                   u.usuario_id,
-                   u.nombre,
-                   u.apellido,
-                   u.email,
-                   u.fecha_registro
-            FROM alumnos a
-            JOIN usuarios u ON a.usuario_id = u.usuario_id
-            ORDER BY a.padron
-        '''
-        cursor.execute(query)
-        return cursor.fetchall() or []
+        sql = SQL_BASE_ALUMNOS + ' ORDER BY a.padron'
+        return ejecutar_consulta(sql)
     except Exception as e:
-        print(f'Error al obtener alumnos: {e}')
+        logger.error(f'Error al obtener alumnos: {e}')
         return []
-    finally:
-        cursor.close()
-        conn.close()
 
 
 def buscar_alumno_por_padron(padron):
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    """
+    Obtiene los detalles de un alumno por su numero de padron.
+    """
     try:
-        query = '''
-            SELECT a.padron,
-                   a.abandono,
-                   u.usuario_id,
-                   u.nombre,
-                   u.apellido,
-                   u.email,
-                   u.fecha_registro
-            FROM alumnos a
-            JOIN usuarios u ON a.usuario_id = u.usuario_id
-            WHERE a.padron = %s
-        '''
-        cursor.execute(query, (padron,))
-        return cursor.fetchone()
+        sql = SQL_BASE_ALUMNOS + ' WHERE a.padron = :padron'
+        filas = ejecutar_consulta(sql, {'padron': padron})
+        return filas[0] if filas else None
     except Exception as e:
-        print(f'Error al buscar alumno por padrón: {e}')
+        logger.error(f'Error al buscar alumno por padron: {e}')
         return None
-    finally:
-        cursor.close()
-        conn.close()
 
 
 def crear_alumno_en_bd(padron, nombre, apellido, email, password_hash, abandono=False):
-    conn = get_connection()
-    cursor = conn.cursor()
+    """
+    Crea un nuevo alumno en la base de datos.
+    Retorna True si se creo correctamente, o un string con el error.
+    """
     try:
-        cursor.execute('SELECT padron FROM alumnos WHERE padron = %s', (padron,))
-        if cursor.fetchone():
+        # Verificar si el padron ya existe
+        existe = ejecutar_consulta(
+            'SELECT padron FROM alumnos WHERE padron = :padron',
+            {'padron': padron}
+        )
+        if existe:
             return 'padron en uso'
 
-        cursor.execute('SELECT usuario_id FROM usuarios WHERE email = %s', (email,))
-        if cursor.fetchone():
+        # Verificar si el email ya existe
+        existe_email = ejecutar_consulta(
+            'SELECT usuario_id FROM usuarios WHERE email = :email',
+            {'email': email}
+        )
+        if existe_email:
             return 'email en uso'
 
-        cursor.execute(
-            'INSERT INTO usuarios (email, password_hash, nombre, apellido, rol) VALUES (%s, %s, %s, %s, %s)',
-            (email, password_hash, nombre, apellido, 'alumno')
-        )
-        usuario_id = cursor.lastrowid
-        cursor.execute(
-            'INSERT INTO alumnos (padron, usuario_id, abandono) VALUES (%s, %s, %s)',
-            (padron, usuario_id, int(bool(abandono)))
-        )
-        conn.commit()
+        # Insertar usuario y obtener el id
+        sql_usuario = """
+            INSERT INTO usuarios (email, password_hash, nombre, apellido, rol)
+            VALUES (:email, :password_hash, :nombre, :apellido, 'alumno')
+            RETURNING usuario_id
+        """
+        usuario_id = ejecutar_mutacion(sql_usuario, {
+            'email': email,
+            'password_hash': password_hash,
+            'nombre': nombre,
+            'apellido': apellido
+        })
+
+        # Insertar alumno
+        sql_alumno = """
+            INSERT INTO alumnos (padron, usuario_id, abandono)
+            VALUES (:padron, :usuario_id, :abandono)
+        """
+        ejecutar_mutacion(sql_alumno, {
+            'padron': padron,
+            'usuario_id': usuario_id,
+            'abandono': int(bool(abandono))
+        })
+
         return True
     except Exception as e:
-        conn.rollback()
-        print(f'Error al crear alumno: {e}')
+        logger.error(f'Error al crear alumno: {e}')
         return None
-    finally:
-        cursor.close()
-        conn.close()
 
 
 def actualizar_alumno_en_bd(padron, nombre=None, apellido=None, email=None, password_hash=None, abandono=None, cursos=None):
+    """
+    Actualiza los datos de un alumno existente.
+    """
     alumno = buscar_alumno_por_padron(padron)
     if alumno is None:
         return 'alumno no encontrado'
 
-    conn = get_connection()
-    cursor = conn.cursor()
     try:
+        # Verificar si el email ya esta en uso por otro usuario
         if email is not None and email != alumno['email']:
-            cursor.execute('SELECT usuario_id FROM usuarios WHERE email = %s AND usuario_id <> %s', (email, alumno['usuario_id']))
-            if cursor.fetchone():
+            existe = ejecutar_consulta(
+                'SELECT usuario_id FROM usuarios WHERE email = :email AND usuario_id <> :usuario_id',
+                {'email': email, 'usuario_id': alumno['usuario_id']}
+            )
+            if existe:
                 return 'email en uso'
 
+        # Construir actualizacion dinamica de usuarios
         updates = []
-        params = []
+        params = {'usuario_id': alumno['usuario_id']}
 
         if nombre is not None:
-            updates.append('nombre = %s')
-            params.append(nombre)
+            updates.append('nombre = :nombre')
+            params['nombre'] = nombre
         if apellido is not None:
-            updates.append('apellido = %s')
-            params.append(apellido)
+            updates.append('apellido = :apellido')
+            params['apellido'] = apellido
         if email is not None:
-            updates.append('email = %s')
-            params.append(email)
+            updates.append('email = :email')
+            params['email'] = email
         if password_hash is not None:
-            updates.append('password_hash = %s')
-            params.append(password_hash)
+            updates.append('password_hash = :password_hash')
+            params['password_hash'] = password_hash
 
         if updates:
-            query = f"UPDATE usuarios SET {', '.join(updates)} WHERE usuario_id = %s"
-            params.append(alumno['usuario_id'])
-            cursor.execute(query, tuple(params))
+            sql = f"UPDATE usuarios SET {', '.join(updates)} WHERE usuario_id = :usuario_id"
+            ejecutar_mutacion(sql, params)
 
+        # Actualizar estado de abandono
         if abandono is not None:
-            cursor.execute('UPDATE alumnos SET abandono = %s WHERE padron = %s', (int(bool(abandono)), padron))
+            ejecutar_mutacion(
+                'UPDATE alumnos SET abandono = :abandono WHERE padron = :padron',
+                {'abandono': int(bool(abandono)), 'padron': padron}
+            )
 
-        # Sincronizar cursos si se pasó la lista
+        # Sincronizar cursos si se paso la lista
         if cursos is not None:
             # Primero eliminamos las relaciones anteriores
-            cursor.execute('DELETE FROM alumnos_cursos WHERE padron = %s', (padron,))
+            ejecutar_mutacion('DELETE FROM alumnos_cursos WHERE padron = :padron', {'padron': padron})
             # Insertamos las nuevas
             for curso_id in cursos:
                 if curso_id:
-                    cursor.execute('INSERT INTO alumnos_cursos (padron, curso_id) VALUES (%s, %s)', (padron, int(curso_id)))
+                    ejecutar_mutacion(
+                        'INSERT INTO alumnos_cursos (padron, curso_id) VALUES (:padron, :curso_id)',
+                        {'padron': padron, 'curso_id': int(curso_id)}
+                    )
 
-        conn.commit()
         return True
     except Exception as e:
-        conn.rollback()
-        print(f'Error al actualizar alumno: {e}')
+        logger.error(f'Error al actualizar alumno: {e}')
         return None
-    finally:
-        cursor.close()
-        conn.close()
 
 
 def eliminar_alumno_en_bd(padron):
+    """
+    Elimina un alumno del sistema.
+    """
     alumno = buscar_alumno_por_padron(padron)
     if alumno is None:
         return 'alumno no encontrado'
 
-    conn = get_connection()
-    cursor = conn.cursor()
     try:
-        cursor.execute('DELETE FROM usuarios WHERE usuario_id = %s', (alumno['usuario_id'],))
-        conn.commit()
+        ejecutar_mutacion(
+            'DELETE FROM usuarios WHERE usuario_id = :usuario_id',
+            {'usuario_id': alumno['usuario_id']}
+        )
         return True
     except Exception as e:
-        conn.rollback()
-        print(f'Error al eliminar alumno: {e}')
+        logger.error(f'Error al eliminar alumno: {e}')
         return None
-    finally:
-        cursor.close()
-        conn.close()
 
 
 def obtener_cursos_del_alumno(padron):
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    """
+    Obtiene los cursos asociados a un alumno.
+    """
     try:
-        query = '''
+        sql = """
             SELECT c.curso_id, c.nombre, c.cuatrimestre, c.anio, c.descripcion
             FROM alumnos_cursos ac
             JOIN cursos c ON ac.curso_id = c.curso_id
-            WHERE ac.padron = %s AND c.deleted_at IS NULL
+            WHERE ac.padron = :padron AND c.deleted_at IS NULL
             ORDER BY c.anio DESC, c.cuatrimestre DESC
-        '''
-        cursor.execute(query, (padron,))
-        return cursor.fetchall() or []
+        """
+        return ejecutar_consulta(sql, {'padron': padron})
     except Exception as e:
-        print(f'Error al obtener cursos del alumno {padron}: {e}')
+        logger.error(f'Error al obtener cursos del alumno {padron}: {e}')
         return []
-    finally:
-        cursor.close()
-        conn.close()
-
