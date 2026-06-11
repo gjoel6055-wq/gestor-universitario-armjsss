@@ -1,13 +1,10 @@
 import jwt
-import logging
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from flask import request, jsonify
 from app.constants import SECRET_KEY
 from app.repositories.usuario_repository import buscar_usuario_por_email, ingresar_nuevo_usuario
 from werkzeug.security import check_password_hash, generate_password_hash
-
-logger = logging.getLogger(__name__)
 
 def generar_token(usuario_id, rol, email):
     payload = {

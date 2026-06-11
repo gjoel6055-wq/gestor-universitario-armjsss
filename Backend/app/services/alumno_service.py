@@ -1,4 +1,3 @@
-import logging
 from app.repositories.alumno_repository import (
     obtener_todos_los_alumnos,
     buscar_alumno_por_padron,
@@ -8,8 +7,6 @@ from app.repositories.alumno_repository import (
     obtener_cursos_del_alumno
 )
 from werkzeug.security import generate_password_hash
-
-logger = logging.getLogger(__name__)
 
 
 def obtener_todos_alumnos():
@@ -25,7 +22,7 @@ def obtener_todos_alumnos():
             a['cursos'] = obtener_cursos_del_alumno(a['padron'])
         return alumnos
     except Exception as e:
-        logger.error(f"Error al obtener alumnos: {e}")
+        print(f"Error al obtener alumnos: {e}")
         return None
 
 
@@ -48,7 +45,7 @@ def obtener_alumno(padron):
             alumno['cursos'] = obtener_cursos_del_alumno(padron)
         return alumno
     except Exception as e:
-        logger.error(f"Error al obtener alumno por padron: {e}")
+        print(f"Error al obtener alumno por padrón: {e}")
         return None
 
 
@@ -94,7 +91,7 @@ def crear_alumno(datos):
             return {'error': resultado}
             
     except Exception as e:
-        logger.error(f"Error al crear alumno: {e}")
+        print(f"Error al crear alumno: {e}")
         return {'error': str(e)}
 
 
@@ -150,7 +147,7 @@ def actualizar_alumno(padron, datos):
             return {'error': resultado}
             
     except Exception as e:
-        logger.error(f"Error al actualizar alumno: {e}")
+        print(f"Error al actualizar alumno: {e}")
         return {'error': str(e)}
 
 
@@ -179,5 +176,5 @@ def eliminar_alumno(padron):
             return {'error': resultado}
             
     except Exception as e:
-        logger.error(f"Error al eliminar alumno: {e}")
+        print(f"Error al eliminar alumno: {e}")
         return {'error': str(e)}
