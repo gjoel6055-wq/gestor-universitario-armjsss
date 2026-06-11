@@ -13,7 +13,10 @@ def generar_token(usuario_id, rol, email):
         'email': email,
         'exp': datetime.now(timezone.utc) + timedelta(hours=8)
     }
-    return jwt.encode(payload, os.getenv('SECRET_KEY'), algorithm='HS256')
+    secret = os.getenv('SECRET_KEY')
+    if not secret:
+        raise RuntimeError("Falta la variable de entorno SECRET_KEY")
+    return jwt.encode(payload, secret, algorithm='HS256')
 
 def procesar_login(email, password):
     datos_usuario = buscar_usuario_por_email(email)
