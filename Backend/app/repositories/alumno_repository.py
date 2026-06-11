@@ -1,9 +1,9 @@
-from app.db import get_connection
+from app.db import get_connection, RealDictCursor
 
 
 def obtener_todos_los_alumnos():
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         query = '''
             SELECT a.padron,
@@ -29,7 +29,7 @@ def obtener_todos_los_alumnos():
 
 def buscar_alumno_por_padron(padron):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         query = '''
             SELECT a.padron,
@@ -164,7 +164,7 @@ def eliminar_alumno_en_bd(padron):
 
 def obtener_cursos_del_alumno(padron):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         query = '''
             SELECT c.curso_id, c.nombre, c.cuatrimestre, c.anio, c.descripcion
