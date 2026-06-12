@@ -86,8 +86,8 @@ gestion_curso_fiuba/
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/usuario/gestor-universitario.git
-cd gestion_curso_fiuba
+git clone https://github.com/gjoel6055-wq/gestor-universitario-armjsss
+cd gestor-universitario-armjsss
 ```
 
 ### 2. Configurar la Base de Datos con MySQL local
