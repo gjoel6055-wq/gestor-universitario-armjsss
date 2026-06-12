@@ -22,58 +22,59 @@ Proyecto final de Introducción al Desarrollo de Software — Curso Lanzillota 2
 ## Estructura del proyecto
 
 ```
-backend/
-├── app/
-│   ├── db.py                               # Conexión a MySQL
-│   ├── constants.py                        # Constantes globales (regex, etc)
-│   ├── routes/
-│   │   ├── auth.py                         # POST /login, /registro, /logout
-│   │   ├── usuarios.py                     # GET /usuarios
-│   │   ├── alumnos.py                      # CRUD alumnos + abandono + CSV
-│   │   ├── docentes.py                     # CRUD docentes
-│   │   ├── cursos.py                       # CRUD cursos
-│   │   ├── tipos_evaluacion.py             # CRUD tipos de evaluación
-│   │   ├── evaluaciones.py                 # CRUD evaluaciones
-│   │   ├── equipos.py                      # CRUD equipos + alumnos + evaluaciones
-│   │   ├── notas.py                        # CRUD notas
-│   │   ├── asistencias.py                  # QR + asistencias
-│   │   ├── materiales.py                   # CRUD materiales
-│   │   └── log.py                          # Consulta de log de actividad
-│   ├── services/
-│   │   ├── auth_service.py                 # Login, registro, decorador JWT
-│   │   ├── alumno_service.py
-│   │   ├── docente_service.py
-│   │   ├── curso_service.py
-│   │   ├── tipo_evaluacion_service.py
-│   │   ├── evaluacion_service.py
-│   │   ├── equipo_service.py
-│   │   ├── nota_service.py
-│   │   ├── asistencia_service.py
-│   │   ├── material_service.py
-│   │   ├── log_service.py
-│   │   ├── qr_service.py
-│   │   ├── mail_service.py
-│   │   └── pdf_service.py
-│   └── repositories/
-│       ├── usuario_repository.py
-│       ├── alumno_repository.py
-│       ├── docente_repository.py
-│       ├── curso_repository.py
-│       ├── tipo_evaluacion_repository.py
-│       ├── evaluacion_repository.py
-│       ├── equipo_repository.py
-│       ├── nota_repository.py
-│       ├── asistencia_repository.py
-│       ├── material_repository.py
-│       └── log_repository.py
-├── database/
-│   ├── schema.sql                          # Creación de tablas
-│   └── seed.sql                            # Datos de prueba
-├── app.py                                  # Punto de entrada
-├── init_db.py                              # Ejecuta schema.sql
-├── init_seed.py                            # Ejecuta seed.sql
+gestion_curso_fiuba/
+├── Backend/
+│   ├── app/
+│   │   ├── db.py                               # Conexión a MySQL
+│   │   ├── constants.py                        # Constantes globales (regex, etc)
+│   │   ├── routes/
+│   │   │   ├── auth.py                         # POST /login, /registro, /logout
+│   │   │   ├── usuarios.py                     # GET /usuarios
+│   │   │   ├── alumnos.py                      # CRUD alumnos + abandono + CSV
+│   │   │   ├── docentes.py                     # CRUD docentes
+│   │   │   ├── cursos.py                       # CRUD cursos
+│   │   │   ├── tipos_evaluacion.py             # CRUD tipos de evaluación
+│   │   │   ├── evaluaciones.py                 # CRUD evaluaciones
+│   │   │   ├── equipos.py                      # CRUD equipos + alumnos + evaluaciones
+│   │   │   ├── notas.py                        # CRUD notas
+│   │   │   ├── asistencias.py                  # QR + asistencias
+│   │   │   ├── materiales.py                   # CRUD materiales
+│   │   │   └── log.py                          # Consulta de log de actividad
+│   │   ├── services/
+│   │   │   ├── auth_service.py                 # Login, registro, decorador JWT
+│   │   │   ├── alumno_service.py
+│   │   │   ├── docente_service.py
+│   │   │   ├── curso_service.py
+│   │   │   ├── tipo_evaluacion_service.py
+│   │   │   ├── evaluacion_service.py
+│   │   │   ├── equipo_service.py
+│   │   │   ├── nota_service.py
+│   │   │   ├── asistencia_service.py
+│   │   │   ├── material_service.py
+│   │   │   ├── log_service.py
+│   │   │   ├── qr_service.py
+│   │   │   ├── mail_service.py
+│   │   │   └── pdf_service.py
+│   │   └── repositories/
+│   │       ├── usuario_repository.py
+│   │       ├── alumno_repository.py
+│   │       ├── docente_repository.py
+│   │       ├── curso_repository.py
+│   │       ├── tipo_evaluacion_repository.py
+│   │       ├── evaluacion_repository.py
+│   │       ├── equipo_repository.py
+│   │       ├── nota_repository.py
+│   │       ├── asistencia_repository.py
+│   │       ├── material_repository.py
+│   │       └── log_repository.py
+│   ├── database/
+│   │   ├── schema.sql                          # Creación de tablas
+│   │   └── seed.sql                            # Datos de prueba
+│   └── app.py                                  # Punto de entrada
+├── README.md
 ├── requirements.txt
-├── init.sh
+├── setup_virtualenv.sh
+├── setup_virtualenv.bat
 ├── .env
 └── .env.example
 ```
@@ -86,15 +87,34 @@ backend/
 
 ```bash
 git clone https://github.com/usuario/gestor-universitario.git
-cd gestor-universitario/backend
+cd gestion_curso_fiuba
 ```
 
-### 2. Crear el entorno virtual e instalar dependencias
+### 2. Configurar la Base de Datos con MySQL local
 
+Si ya tenes MySQL corriendo en tu maquina (puerto 3306 por defecto):
+
+Crear la base de datos y cargar el esquema y datos de prueba:
+
+**Linux / macOS / WSL:**
 ```bash
-bash init.sh
-source venv/bin/activate
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS gestor_universitario;"
+mysql -u root -p gestor_universitario < Backend/database/schema.sql
+mysql -u root -p gestor_universitario < Backend/database/seed.sql
 ```
+
+**Windows PowerShell:**
+```powershell
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS gestor_universitario;"
+Get-Content Backend\database\schema.sql | mysql -u root -p gestor_universitario
+Get-Content Backend\database\seed.sql | mysql -u root -p gestor_universitario
+```
+
+Verificar que las tablas se hayan creado:
+```bash
+mysql -u root -p -e "USE gestor_universitario; SHOW TABLES;"
+```
+*Si tu usuario, password, puerto o nombre de base no coinciden con los defaults, actualiza el `.env` antes de levantar la API.*
 
 ### 3. Configurar las variables de entorno
 
@@ -117,25 +137,22 @@ DB_NAME="gestor_universitario"
 SECRET_KEY=tu_clave_secreta_larga_y_segura
 ```
 
-### 4. Crear las tablas
+### 4. Entorno virtual, instalación y ejecución
 
-```bash
-python init_db.py
+El proyecto incluye scripts de setup que crean el entorno virtual, instalan las dependencias y levantan la API automáticamente.
+
+**Windows:**
+```cmd
+setup_virtualenv.bat
 ```
 
-### 5. Cargar datos de prueba
-
+**Linux / macOS:**
 ```bash
-python init_seed.py
+chmod +x setup_virtualenv.sh
+./setup_virtualenv.sh
 ```
 
-### 6. Correr la aplicación
-
-```bash
-python app.py
-```
-
-La API quedará disponible en `http://localhost:5000`.
+Una vez iniciada, la API estará disponible en `http://localhost:8080`.
 
 ---
 
