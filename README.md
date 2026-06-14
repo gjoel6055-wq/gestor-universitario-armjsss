@@ -501,6 +501,140 @@ alumnos  → notas, asistencias (1:N)
 equipos  → equipos_alumnos ↔ alumnos (N:M)
 equipos  → equipos_evaluaciones ↔ evaluaciones (N:M)
 ```
+## Diagrama Entidad-Relación
+
+```mermaid
+erDiagram
+    usuarios {
+        INT usuario_id PK
+        VARCHAR email
+        VARCHAR password_hash
+        VARCHAR nombre
+        VARCHAR apellido
+        ENUM rol
+        DATETIME fecha_registro
+        DATETIME deleted_at
+    }
+    cursos {
+        INT curso_id PK
+        VARCHAR nombre
+        ENUM cuatrimestre
+        INT anio
+        TEXT descripcion
+        DATETIME fecha_creacion
+        DATETIME deleted_at
+    }
+    tipos_evaluacion {
+        INT tipo_id PK
+        VARCHAR nombre
+        TEXT descripcion
+        DATETIME fecha_creacion
+        DATETIME deleted_at
+    }
+    docentes {
+        INT legajo PK
+        INT usuario_id FK
+        VARCHAR departamento
+        DATETIME deleted_at
+    }
+    alumnos {
+        INT padron PK
+        INT usuario_id FK
+        TINYINT abandono
+        DATETIME deleted_at
+    }
+    alumnos_cursos {
+        INT padron PK
+        INT curso_id PK
+        DATETIME fecha_inscripcion
+    }
+    log_actividad {
+        INT log_id PK
+        INT usuario_id FK
+        VARCHAR email
+        VARCHAR accion
+        DATETIME fecha_actividad
+        VARCHAR ip
+    }
+    evaluaciones {
+        INT evaluacion_id PK
+        INT tipo_id FK
+        INT curso_id FK
+        VARCHAR nombre
+        DATE fecha
+        DECIMAL peso
+        TEXT descripcion
+        DATETIME deleted_at
+    }
+    equipos {
+        INT equipo_id PK
+        INT curso_id FK
+        VARCHAR nombre
+        DATETIME fecha_creacion
+        DATETIME deleted_at
+    }
+    materiales {
+        INT material_id PK
+        INT curso_id FK
+        VARCHAR titulo
+        TEXT descripcion
+        VARCHAR archivo_url
+        VARCHAR tipo
+        TINYINT publico
+        DATETIME fecha_subida
+        INT subido_por FK
+        DATETIME deleted_at
+    }
+    notas {
+        INT nota_id PK
+        INT padron FK
+        INT evaluacion_id FK
+        DECIMAL nota
+        DATETIME fecha_carga
+        TEXT observacion
+        DATETIME deleted_at
+    }
+    asistencias {
+        INT asistencia_id PK
+        INT padron FK
+        DATE fecha
+        TINYINT presente
+        VARCHAR qr_token
+        DATETIME qr_expiracion
+        DATETIME email_enviado_at
+    }
+    equipos_alumnos {
+        INT equipo_alumnos_id PK
+        INT equipo_id FK
+        INT padron FK
+        DATETIME fecha_alta
+        DATETIME deleted_at
+    }
+    equipos_evaluaciones {
+        INT equipo_evaluacion_id PK
+        INT equipo_id FK
+        INT evaluacion_id FK
+        DATETIME deleted_at
+    }
+
+    usuarios ||--o| docentes : "es"
+    usuarios ||--o| alumnos : "es"
+    usuarios ||--o{ log_actividad : "genera"
+    usuarios ||--o{ materiales : "sube"
+    tipos_evaluacion ||--o{ evaluaciones : "clasifica"
+    cursos ||--o{ evaluaciones : "tiene"
+    cursos ||--o{ equipos : "tiene"
+    cursos ||--o{ materiales : "contiene"
+    cursos ||--o{ alumnos_cursos : "ofrece"
+    alumnos ||--o{ alumnos_cursos : "se_inscribe"
+    evaluaciones ||--o{ notas : "tiene"
+    alumnos ||--o{ notas : "recibe"
+    alumnos ||--o{ asistencias : "registra"
+    equipos ||--o{ equipos_alumnos : "incluye"
+    alumnos ||--o{ equipos_alumnos : "integra"
+    equipos ||--o{ equipos_evaluaciones : "asociado_a"
+    evaluaciones ||--o{ equipos_evaluaciones : "vinculada_a"
+```
 
 Para ver el esquema completo ver `database/schema.sql`.
 
