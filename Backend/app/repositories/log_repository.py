@@ -1,4 +1,7 @@
 from app.db import get_connection
+import logging
+
+logger = logging.getLogger(__name__)
 
 def registrar_log(usuario_id, accion, ip, email=None):
     conn = get_connection()
@@ -11,7 +14,7 @@ def registrar_log(usuario_id, accion, ip, email=None):
         return True
     except Exception as e:
         conn.rollback()
-        print(f"Error al registrar actividad en DB: {e}")
+        logger.error(f"Error al registrar actividad en DB: {e}")
         return False
     finally:
         cursor.close()
@@ -36,7 +39,7 @@ def listar_logs(accion=None):
         return logs
 
     except Exception as e:
-        print(f"Error al listar logs: {e}")
+        logger.error(f"Error al listar logs: {e}")
         return False
     finally:
         cursor.close()

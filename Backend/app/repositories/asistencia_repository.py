@@ -1,5 +1,8 @@
 from app.db import get_connection
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def crear_nueva_asistencia(padron, fecha, qr_token, fecha_expiraicon):
@@ -14,7 +17,7 @@ def crear_nueva_asistencia(padron, fecha, qr_token, fecha_expiraicon):
         return True
     except Exception as e:
         conn.rollback()
-        print (f"error: {e}")
+        logger.error(f"error: {e}")
         return None
     finally:
         cursor.close()
@@ -47,7 +50,7 @@ def registrar_asistencia(qr_token):
         return True
     except Exception as e:
         conn.rollback()
-        print(f"error: {e}")
+        logger.error(f"error: {e}")
         return None
     finally:
         cursor.close()
@@ -73,7 +76,7 @@ def obtener_alumnos_curso(curso_id):
         return alumnos
 
     except Exception as e:
-        print(f"error: {e}")
+        logger.error(f"error: {e}")
         return None
     finally:
         cursor.close()
@@ -97,7 +100,7 @@ def obtener_asistencias_por_fecha(fecha_consulta):
         return alumnos
 
     except Exception as e:
-        print(f"Error en BD al obtener asistencias por fecha: {e}")
+        logger.error(f"Error en BD al obtener asistencias por fecha: {e}")
         return None
     finally:
         cursor.close()
@@ -117,7 +120,7 @@ def obtener_asistencia_por_token(token):
         cursor.execute(query, (token,))
         return cursor.fetchone()
     except Exception as e:
-        print(f"Error al buscar token: {e}")
+        logger.error(f"Error al buscar token: {e}")
         return None
     finally:
         cursor.close()

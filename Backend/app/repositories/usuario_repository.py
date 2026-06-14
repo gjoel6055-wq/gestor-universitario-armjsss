@@ -1,5 +1,7 @@
 from app.db import get_connection
+import logging
 
+logger = logging.getLogger(__name__)
 
 def buscar_usuario_por_email(email):
     conn = get_connection()
@@ -10,7 +12,7 @@ def buscar_usuario_por_email(email):
         usuario = cursor.fetchone()
         return usuario
     except Exception as e:
-        print(f"error: {e}")
+        logger.error(f"error: {e}")
         return None
     finally:
         cursor.close()
@@ -47,7 +49,7 @@ def ingresar_nuevo_usuario(nombre, apellido, email, hash, rol, identificador):
 
     except Exception as e:
         conn.rollback()
-        print(f'Error al ingresar nuevo usuario: {e}')
+        logger.error(f'Error al ingresar nuevo usuario: {e}')
         return None
     finally:
         cursor.close()

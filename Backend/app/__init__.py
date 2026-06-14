@@ -1,4 +1,5 @@
 import os
+import logging
 from flask import Flask
 from app.extensions import mail
 from dotenv import load_dotenv
@@ -17,6 +18,11 @@ from app.routes.tipos_evaluacion import tipos_evaluacion_bp
 def create_app():
     app = Flask(__name__)
     load_dotenv()
+
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
 
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
     app.config['MAIL_PORT'] = 587
