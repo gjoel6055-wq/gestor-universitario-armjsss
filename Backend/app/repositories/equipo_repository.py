@@ -1,5 +1,8 @@
+import logging
 import mysql.connector
 from app.db import get_connection
+
+logger = logging.getLogger(__name__)
 
 # EQUIPOS
 def obtener_todos(curso_id=None):
@@ -30,7 +33,7 @@ def obtener_todos(curso_id=None):
             )
         return cursor.fetchall()
     except Exception as e:
-        print(f"Error al obtener equipos: {e}")
+        logger.error(f"Error al obtener equipos: {e}")
         return []
     finally:
         cursor.close()
@@ -57,7 +60,7 @@ def obtener_por_id(equipo_id):
             equipo['evaluaciones'] = obtener_evaluaciones_del_equipo(equipo_id)
         return equipo
     except Exception as e:
-        print(f"Error al obtener equipo {equipo_id}: {e}")
+        logger.error(f"Error al obtener equipo {equipo_id}: {e}")
         return None
     finally:
         cursor.close()
@@ -86,7 +89,7 @@ def insertar(datos):
         raise ValueError(f"Error de integridad: {e}")
     except Exception as e:
         conn.rollback()
-        print(f"Error al insertar equipo: {e}")
+        logger.error(f"Error al insertar equipo: {e}")
         return None
     finally:
         cursor.close()
@@ -117,7 +120,7 @@ def actualizar(equipo_id, datos):
         raise ValueError(f"Error de integridad: {e}")
     except Exception as e:
         conn.rollback()
-        print(f"Error al actualizar equipo {equipo_id}: {e}")
+        logger.error(f"Error al actualizar equipo {equipo_id}: {e}")
         return None
     finally:
         cursor.close()
@@ -161,7 +164,7 @@ def eliminar(equipo_id):
         return True
     except Exception as e:
         conn.rollback()
-        print(f"Error al eliminar equipo {equipo_id}: {e}")
+        logger.error(f"Error al eliminar equipo {equipo_id}: {e}")
         return False
     finally:
         cursor.close()
@@ -192,7 +195,7 @@ def obtener_alumnos_del_equipo(equipo_id):
         )
         return cursor.fetchall()
     except Exception as e:
-        print(f"Error al obtener alumnos del equipo {equipo_id}: {e}")
+        logger.error(f"Error al obtener alumnos del equipo {equipo_id}: {e}")
         return []
     finally:
         cursor.close()
@@ -214,7 +217,7 @@ def alumno_en_equipo(equipo_id, padron):
         )
         return cursor.fetchone() is not None
     except Exception as e:
-        print(f"Error al verificar alumno en equipo: {e}")
+        logger.error(f"Error al verificar alumno en equipo: {e}")
         return False
     finally:
         cursor.close()
@@ -240,7 +243,7 @@ def insertar_alumno(equipo_id, padron):
         raise ValueError(f"Error de integridad: {e}")
     except Exception as e:
         conn.rollback()
-        print(f"Error al agregar alumno al equipo: {e}")
+        logger.error(f"Error al agregar alumno al equipo: {e}")
         return None
     finally:
         cursor.close()
@@ -265,7 +268,7 @@ def eliminar_alumno(equipo_id, padron):
         return True
     except Exception as e:
         conn.rollback()
-        print(f"Error al eliminar alumno del equipo: {e}")
+        logger.error(f"Error al eliminar alumno del equipo: {e}")
         return False
     finally:
         cursor.close()
@@ -297,7 +300,7 @@ def obtener_evaluaciones_del_equipo(equipo_id):
         )
         return cursor.fetchall()
     except Exception as e:
-        print(f"Error al obtener evaluaciones del equipo {equipo_id}: {e}")
+        logger.error(f"Error al obtener evaluaciones del equipo {equipo_id}: {e}")
         return []
     finally:
         cursor.close()
@@ -319,7 +322,7 @@ def evaluacion_en_equipo(equipo_id, evaluacion_id):
         )
         return cursor.fetchone() is not None
     except Exception as e:
-        print(f"Error al verificar evaluacion en equipo: {e}")
+        logger.error(f"Error al verificar evaluacion en equipo: {e}")
         return False
     finally:
         cursor.close()
@@ -347,7 +350,7 @@ def insertar_evaluacion(equipo_id, evaluacion_id):
         raise ValueError(f"Error de integridad: {e}")
     except Exception as e:
         conn.rollback()
-        print(f"Error al agregar evaluacion al equipo: {e}")
+        logger.error(f"Error al agregar evaluacion al equipo: {e}")
         return None
     finally:
         cursor.close()
@@ -373,7 +376,7 @@ def eliminar_evaluacion(equipo_id, evaluacion_id):
         return True
     except Exception as e:
         conn.rollback()
-        print(f"Error al eliminar evaluacion del equipo: {e}")
+        logger.error(f"Error al eliminar evaluacion del equipo: {e}")
         return False
     finally:
         cursor.close()

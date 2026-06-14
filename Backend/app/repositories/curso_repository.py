@@ -1,5 +1,8 @@
+import logging
 import mysql.connector
 from app.db import get_connection
+
+logger = logging.getLogger(__name__)
 
 
 def obtener_todos():
@@ -15,7 +18,7 @@ def obtener_todos():
         )
         return cursor.fetchall()
     except Exception as e:
-        print(f"Error al obtener cursos: {e}")
+        logger.error(f"Error al obtener cursos: {e}")
         return []
     finally:
         cursor.close()
@@ -36,7 +39,7 @@ def obtener_por_id(curso_id):
         )
         return cursor.fetchone()
     except Exception as e:
-        print(f"Error al obtener curso {curso_id}: {e}")
+        logger.error(f"Error al obtener curso {curso_id}: {e}")
         return None
     finally:
         cursor.close()
@@ -66,7 +69,7 @@ def insertar(datos):
         raise ValueError(f"Error de integridad: {e}")
     except Exception as e:
         conn.rollback()
-        print(f"Error al insertar curso: {e}")
+        logger.error(f"Error al insertar curso: {e}")
         return None
     finally:
         cursor.close()
@@ -97,7 +100,7 @@ def actualizar(curso_id, datos):
         raise ValueError(f"Error de integridad: {e}")
     except Exception as e:
         conn.rollback()
-        print(f"Error al actualizar curso {curso_id}: {e}")
+        logger.error(f"Error al actualizar curso {curso_id}: {e}")
         return None
     finally:
         cursor.close()
@@ -121,7 +124,7 @@ def eliminar(curso_id):
         return True
     except Exception as e:
         conn.rollback()
-        print(f"Error al eliminar curso {curso_id}: {e}")
+        logger.error(f"Error al eliminar curso {curso_id}: {e}")
         return False
     finally:
         cursor.close()

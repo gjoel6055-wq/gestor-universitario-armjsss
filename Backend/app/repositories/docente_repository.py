@@ -1,4 +1,8 @@
+# docente_repository.py
+import logging
 from app.db import get_connection
+
+logger = logging.getLogger(__name__)
 
 
 def obtener_todos_los_docentes():
@@ -22,7 +26,7 @@ def obtener_todos_los_docentes():
         cursor.execute(query)
         return cursor.fetchall() or []
     except Exception as e:
-        print(f'Error al obtener docentes: {e}')
+        logger.error(f'Error al obtener docentes: {e}')
         return []
     finally:
         cursor.close()
@@ -50,7 +54,7 @@ def buscar_docente_por_legajo(legajo):
         cursor.execute(query, (legajo,))
         return cursor.fetchone()
     except Exception as e:
-        print(f'Error al buscar docente por legajo: {e}')
+        logger.error(f'Error al buscar docente por legajo: {e}')
         return None
     finally:
         cursor.close()
@@ -91,7 +95,7 @@ def crear_docente_en_bd(legajo, nombre, apellido, email, password_hash, departam
         return legajo
     except Exception as e:
         conn.rollback()
-        print(f'Error al crear docente: {e}')
+        logger.error(f'Error al crear docente: {e}')
         return None
     finally:
         cursor.close()
@@ -131,7 +135,7 @@ def actualizar_docente_en_bd(legajo, nombre=None, apellido=None, departamento=No
         return True
     except Exception as e:
         conn.rollback()
-        print(f'Error al actualizar docente {legajo}: {e}')
+        logger.error(f'Error al actualizar docente {legajo}: {e}')
         return None
     finally:
         cursor.close()
@@ -158,7 +162,7 @@ def eliminar_docente_en_bd(legajo):
         return True
     except Exception as e:
         conn.rollback()
-        print(f'Error al eliminar docente: {e}')
+        logger.error(f'Error al eliminar docente: {e}')
         return None
     finally:
         cursor.close()
