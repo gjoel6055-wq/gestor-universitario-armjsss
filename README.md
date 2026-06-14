@@ -502,121 +502,119 @@ equipos  → equipos_alumnos ↔ alumnos (N:M)
 equipos  → equipos_evaluaciones ↔ evaluaciones (N:M)
 ```
 ## Diagrama Entidad-Relación
-
 ```mermaid
 erDiagram
     usuarios {
-        INT usuario_id PK
-        VARCHAR email
-        VARCHAR password_hash
-        VARCHAR nombre
-        VARCHAR apellido
-        ENUM rol
-        DATETIME fecha_registro
-        DATETIME deleted_at
+        int usuario_id PK
+        string email
+        string password_hash
+        string nombre
+        string apellido
+        string rol
+        string fecha_registro
+        string deleted_at
     }
     cursos {
-        INT curso_id PK
-        VARCHAR nombre
-        ENUM cuatrimestre
-        INT anio
-        TEXT descripcion
-        DATETIME fecha_creacion
-        DATETIME deleted_at
+        int curso_id PK
+        string nombre
+        string cuatrimestre
+        int anio
+        string descripcion
+        string fecha_creacion
+        string deleted_at
     }
     tipos_evaluacion {
-        INT tipo_id PK
-        VARCHAR nombre
-        TEXT descripcion
-        DATETIME fecha_creacion
-        DATETIME deleted_at
+        int tipo_id PK
+        string nombre
+        string descripcion
+        string fecha_creacion
+        string deleted_at
     }
     docentes {
-        INT legajo PK
-        INT usuario_id FK
-        VARCHAR departamento
-        DATETIME deleted_at
+        int legajo PK
+        int usuario_id FK
+        string departamento
+        string deleted_at
     }
     alumnos {
-        INT padron PK
-        INT usuario_id FK
-        TINYINT abandono
-        DATETIME deleted_at
+        int padron PK
+        int usuario_id FK
+        boolean abandono
+        string deleted_at
     }
     alumnos_cursos {
-        INT padron PK
-        INT curso_id PK
-        DATETIME fecha_inscripcion
+        int padron PK
+        int curso_id PK
+        string fecha_inscripcion
     }
     log_actividad {
-        INT log_id PK
-        INT usuario_id FK
-        VARCHAR email
-        VARCHAR accion
-        DATETIME fecha_actividad
-        VARCHAR ip
+        int log_id PK
+        int usuario_id FK
+        string email
+        string accion
+        string fecha_actividad
+        string ip
     }
     evaluaciones {
-        INT evaluacion_id PK
-        INT tipo_id FK
-        INT curso_id FK
-        VARCHAR nombre
-        DATE fecha
-        DECIMAL peso
-        TEXT descripcion
-        DATETIME deleted_at
+        int evaluacion_id PK
+        int tipo_id FK
+        int curso_id FK
+        string nombre
+        string fecha
+        float peso
+        string descripcion
+        string deleted_at
     }
     equipos {
-        INT equipo_id PK
-        INT curso_id FK
-        VARCHAR nombre
-        DATETIME fecha_creacion
-        DATETIME deleted_at
+        int equipo_id PK
+        int curso_id FK
+        string nombre
+        string fecha_creacion
+        string deleted_at
     }
     materiales {
-        INT material_id PK
-        INT curso_id FK
-        VARCHAR titulo
-        TEXT descripcion
-        VARCHAR archivo_url
-        VARCHAR tipo
-        TINYINT publico
-        DATETIME fecha_subida
-        INT subido_por FK
-        DATETIME deleted_at
+        int material_id PK
+        int curso_id FK
+        string titulo
+        string descripcion
+        string archivo_url
+        string tipo
+        boolean publico
+        string fecha_subida
+        int subido_por FK
+        string deleted_at
     }
     notas {
-        INT nota_id PK
-        INT padron FK
-        INT evaluacion_id FK
-        DECIMAL nota
-        DATETIME fecha_carga
-        TEXT observacion
-        DATETIME deleted_at
+        int nota_id PK
+        int padron FK
+        int evaluacion_id FK
+        float nota
+        string fecha_carga
+        string observacion
+        string deleted_at
     }
     asistencias {
-        INT asistencia_id PK
-        INT padron FK
-        DATE fecha
-        TINYINT presente
-        VARCHAR qr_token
-        DATETIME qr_expiracion
-        DATETIME email_enviado_at
+        int asistencia_id PK
+        int padron FK
+        string fecha
+        boolean presente
+        string qr_token
+        string qr_expiracion
+        string email_enviado_at
     }
     equipos_alumnos {
-        INT equipo_alumnos_id PK
-        INT equipo_id FK
-        INT padron FK
-        DATETIME fecha_alta
-        DATETIME deleted_at
+        int equipo_alumnos_id PK
+        int equipo_id FK
+        int padron FK
+        string fecha_alta
+        string deleted_at
     }
     equipos_evaluaciones {
-        INT equipo_evaluacion_id PK
-        INT equipo_id FK
-        INT evaluacion_id FK
-        DATETIME deleted_at
+        int equipo_evaluacion_id PK
+        int equipo_id FK
+        int evaluacion_id FK
+        string deleted_at
     }
-
     usuarios ||--o| docentes : "es"
     usuarios ||--o| alumnos : "es"
     usuarios ||--o{ log_actividad : "genera"
