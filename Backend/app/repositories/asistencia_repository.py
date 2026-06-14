@@ -1,6 +1,7 @@
 from app.db import get_connection
 from datetime import datetime
 import logging
+import mysql.connector
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,7 @@ def crear_nueva_asistencia(padron, fecha, qr_token, fecha_expiraicon):
         cursor.execute(query, (padron, fecha, qr_token, fecha_expiraicon, fecha_de_envio, ))
         conn.commit()
         return True
-    except Exception as e:
+    except mysql.connector.Error as e:
         conn.rollback()
         logger.error(f"error: {e}")
         return None
@@ -48,7 +49,7 @@ def registrar_asistencia(qr_token):
         cursor.execute(query_registro_asistencia, (qr_token, ))
         conn.commit()
         return True
-    except Exception as e:
+    except mysql.connector.Error as e:
         conn.rollback()
         logger.error(f"error: {e}")
         return None
@@ -75,7 +76,7 @@ def obtener_alumnos_curso(curso_id):
         alumnos = cursor.fetchall()
         return alumnos
 
-    except Exception as e:
+    except mysql.connector.Error as e:
         logger.error(f"error: {e}")
         return None
     finally:
@@ -99,7 +100,7 @@ def obtener_asistencias_por_fecha(fecha_consulta):
 
         return alumnos
 
-    except Exception as e:
+    except mysql.connector.Error as e:
         logger.error(f"Error en BD al obtener asistencias por fecha: {e}")
         return None
     finally:
@@ -119,7 +120,7 @@ def obtener_asistencia_por_token(token):
         """
         cursor.execute(query, (token,))
         return cursor.fetchone()
-    except Exception as e:
+    except mysql.connector.Error as e:
         logger.error(f"Error al buscar token: {e}")
         return None
     finally:

@@ -1,5 +1,6 @@
 from app.db import get_connection
 import logging
+import mysql.connector
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +13,7 @@ def registrar_log(usuario_id, accion, ip, email=None):
         cursor.execute(query, (usuario_id, email, accion, ip, ))
         conn.commit()
         return True
-    except Exception as e:
+    except mysql.connector.Error as e:
         conn.rollback()
         logger.error(f"Error al registrar actividad en DB: {e}")
         return False
@@ -38,7 +39,7 @@ def listar_logs(accion=None):
 
         return logs
 
-    except Exception as e:
+    except mysql.connector.Error as e:
         logger.error(f"Error al listar logs: {e}")
         return False
     finally:

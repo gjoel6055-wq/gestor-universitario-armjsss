@@ -1,5 +1,6 @@
 from app.db import get_connection
 import logging
+import mysql.connector
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +12,7 @@ def buscar_usuario_por_email(email):
         cursor.execute(query, (email,))
         usuario = cursor.fetchone()
         return usuario
-    except Exception as e:
+    except mysql.connector.Error as e:
         logger.error(f"error: {e}")
         return None
     finally:
@@ -47,7 +48,7 @@ def ingresar_nuevo_usuario(nombre, apellido, email, hash, rol, identificador):
         conn.commit()
         return True
 
-    except Exception as e:
+    except mysql.connector.Error as e:
         conn.rollback()
         logger.error(f'Error al ingresar nuevo usuario: {e}')
         return None
