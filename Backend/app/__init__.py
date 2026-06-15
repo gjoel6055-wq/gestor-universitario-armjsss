@@ -1,19 +1,19 @@
 import os
 import logging
 from flask import Flask
-from app.extensions import mail
+from .extensions import mail
 from dotenv import load_dotenv
-from app.routes.cursos import cursos_bp
-from app.routes.equipos import equipos_bp
-from app.routes.docentes import docente_bp
-from app.routes.auth import auth_bp
-from app.routes.asistencia import asistencia_bp
-from app.routes.alumnos import alumnos_bp
-from app.routes.dashboard import dashboard_bp
-from app.routes.log import log_bp
-from app.routes.notas import notas_bp
-from app.routes.evaluaciones import evaluaciones_bp
-from app.routes.tipos_evaluacion import tipos_evaluacion_bp
+from .routes.cursos import cursos_bp
+from .routes.equipos import equipos_bp
+from .routes.docentes import docente_bp
+from .routes.auth import auth_bp
+from .routes.asistencia import asistencia_bp
+from .routes.alumnos import alumnos_bp
+from .routes.dashboard import dashboard_bp
+from .routes.log import log_bp
+from .routes.notas import notas_bp
+from .routes.evaluaciones import evaluaciones_bp
+from .routes.tipos_evaluacion import tipos_evaluacion_bp
 
 def create_app():
     app = Flask(__name__)
