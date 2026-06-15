@@ -1,6 +1,7 @@
 from app.db import get_connection
 import logging
-import mysql.connector
+import psycopg2
+import psycopg2.extras
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +14,7 @@ def registrar_log(usuario_id, accion, ip, email=None):
         cursor.execute(query, (usuario_id, email, accion, ip, ))
         conn.commit()
         return True
-    except mysql.connector.Error as e:
+    except psycopg2.Error as e:
         conn.rollback()
         logger.error(f"Error al registrar actividad en DB: {e}")
         return False
@@ -24,7 +25,7 @@ def registrar_log(usuario_id, accion, ip, email=None):
 
 def listar_logs(accion=None):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     if accion:
         query = "SELECT * FROM log_actividad WHERE accion LIKE %s"
@@ -39,7 +40,7 @@ def listar_logs(accion=None):
 
         return logs
 
-    except mysql.connector.Error as e:
+    except psycopg2.Error as e:
         logger.error(f"Error al listar logs: {e}")
         return False
     finally:

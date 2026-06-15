@@ -1,18 +1,19 @@
 from app.db import get_connection
 import logging
-import mysql.connector
+import psycopg2
+import psycopg2.extras
 
 logger = logging.getLogger(__name__)
 
 def buscar_usuario_por_email(email):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     query = "SELECT * FROM usuarios WHERE email= %s"
     try:
         cursor.execute(query, (email,))
         usuario = cursor.fetchone()
         return usuario
-    except mysql.connector.Error as e:
+    except psycopg2.Error as e:
         logger.error(f"error: {e}")
         return None
     finally:
@@ -22,9 +23,9 @@ def buscar_usuario_por_email(email):
 
 def ingresar_nuevo_usuario(nombre, apellido, email, hash, rol, identificador):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    query_usuario = 'INSERT INTO usuarios (email, password_hash, nombre, apellido, rol) VALUES (%s,%s,%s,%s,%s)'
+    query_usuario = 'INSERT INTO usuarios (email, password_hash, nombre, apellido, rol) VALUES (%s,%s,%s,%s,%s) RETURNING usuario_id'
     validation_query = "SELECT * FROM usuarios WHERE email = %s"
 
     try:
@@ -35,7 +36,7 @@ def ingresar_nuevo_usuario(nombre, apellido, email, hash, rol, identificador):
             return "email en uso"
 
         cursor.execute(query_usuario, (email, hash, nombre, apellido, rol))
-        nuevo_usuario_id = cursor.lastrowid
+        nuevo_usuario_id = cursor.fetchone()['usuario_id']
 
         if rol == 'alumno':
             query_alumno = "INSERT INTO alumnos (padron, usuario_id) VALUES (%s, %s)"
@@ -48,7 +49,7 @@ def ingresar_nuevo_usuario(nombre, apellido, email, hash, rol, identificador):
         conn.commit()
         return True
 
-    except mysql.connector.Error as e:
+    except psycopg2.Error as e:
         conn.rollback()
         logger.error(f'Error al ingresar nuevo usuario: {e}')
         return None
