@@ -1,6 +1,8 @@
 from app.repositories import equipo_repository
 
+
 # EQUIPOS
+
 def obtener_todos(curso_id=None):
     return equipo_repository.obtener_todos(curso_id)
 
@@ -29,12 +31,9 @@ def actualizar(equipo_id, datos):
 
 def actualizar_parcial(equipo_id, datos):
     equipo_actual = obtener_por_id(equipo_id)
-
-    # Mezclar datos actuales con los nuevos
     datos_actualizados = {
         'nombre': datos.get('nombre', equipo_actual['nombre'])
     }
-
     return equipo_repository.actualizar(equipo_id, datos_actualizados)
 
 
@@ -43,8 +42,8 @@ def eliminar(equipo_id):
     equipo_repository.eliminar(equipo_id)
 
 
-
 # ALUMNOS DEL EQUIPO
+
 def agregar_alumno(equipo_id, datos):
     obtener_por_id(equipo_id)
     padron = datos.get('padron')
@@ -61,6 +60,7 @@ def quitar_alumno(equipo_id, padron):
 
 
 # EVALUACIONES DEL EQUIPO
+
 def agregar_evaluacion(equipo_id, datos):
     obtener_por_id(equipo_id)
     evaluacion_id = datos.get('evaluacion_id')

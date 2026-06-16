@@ -24,7 +24,4 @@ def modificar_docente(legajo, nombre=None, apellido=None, departamento=None):
 
 
 def borrar_docente(legajo):
-    resultado = eliminar_docente_en_bd(legajo)
-    if resultado == 'docente no encontrado':
-        return None
-    return resultado
+    return eliminar_docente_en_bd(legajo)

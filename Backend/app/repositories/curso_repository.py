@@ -40,7 +40,7 @@ def obtener_por_id(curso_id):
         return cursor.fetchone()
     except Exception as e:
         logger.error(f"Error al obtener curso {curso_id}: {e}")
-        return None
+        raise
     finally:
         cursor.close()
         conn.close()
@@ -70,7 +70,7 @@ def insertar(datos):
     except Exception as e:
         conn.rollback()
         logger.error(f"Error al insertar curso: {e}")
-        return None
+        raise
     finally:
         cursor.close()
         conn.close()
@@ -101,7 +101,7 @@ def actualizar(curso_id, datos):
     except Exception as e:
         conn.rollback()
         logger.error(f"Error al actualizar curso {curso_id}: {e}")
-        return None
+        raise
     finally:
         cursor.close()
         conn.close()
@@ -125,7 +125,7 @@ def eliminar(curso_id):
     except Exception as e:
         conn.rollback()
         logger.error(f"Error al eliminar curso {curso_id}: {e}")
-        return False
+        raise
     finally:
         cursor.close()
         conn.close()

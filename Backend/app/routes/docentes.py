@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify
 from app.services.docente_service import (
     listar_docentes,
     obtener_docente,
@@ -19,7 +19,7 @@ def obtener_todos_los_docentes():
     try:
         lista = listar_docentes()
         return jsonify(lista), 200
-    except Exception as e:
+    except Exception:
         return jsonify({'error': 'Error interno al obtener la lista de docentes'}), 500
 
 
@@ -31,7 +31,7 @@ def obtener_docente_por_legajo(legajo):
         if docente is None:
             return jsonify({'error': 'Docente no encontrado'}), 404
         return jsonify(docente), 200
-    except Exception as e:
+    except Exception:
         return jsonify({'error': 'Error interno al obtener el docente'}), 500
 
 
@@ -39,11 +39,11 @@ def obtener_docente_por_legajo(legajo):
 @requiere_token(rol_necesario='docente')
 def agregar_docente():
     datos = request.get_json()
-    legajo      = datos.get('legajo')
-    nombre      = datos.get('nombre')
-    apellido    = datos.get('apellido')
-    email       = datos.get('email')
-    password    = datos.get('password')
+    legajo       = datos.get('legajo')
+    nombre       = datos.get('nombre')
+    apellido     = datos.get('apellido')
+    email        = datos.get('email')
+    password     = datos.get('password')
     departamento = datos.get('departamento', '')
 
     if not all([legajo, nombre, apellido, email, password]):
@@ -61,23 +61,23 @@ def agregar_docente():
         if resultado is None:
             return jsonify({'error': 'Error interno al registrar el docente'}), 500
 
-        ip_usuario = request.remote_addr
-        usuario_id = getattr(request, 'usuario_id', None)
+        ip_usuario    = request.remote_addr
+        usuario_id    = getattr(request, 'usuario_id', None)
         email_usuario = getattr(request, 'email_usuario', None)
-        accion = f"Registró al docente con legajo {legajo}"
+        accion        = f"Registró al docente con legajo {legajo}"
         registrar_actividad(usuario_id, accion, ip_usuario, email_usuario)
 
         return jsonify({'mensaje': 'Docente registrado exitosamente', 'legajo': resultado}), 201
-    except Exception as e:
+    except Exception:
         return jsonify({'error': 'Error interno en la base de datos'}), 500
 
 
 @docente_bp.route('/docentes/<int:legajo>', methods=['PUT', 'PATCH'])
 @requiere_token(rol_necesario='docente')
 def actualizar_docente(legajo):
-    datos = request.get_json()
-    nombre      = datos.get('nombre')
-    apellido    = datos.get('apellido')
+    datos        = request.get_json()
+    nombre       = datos.get('nombre')
+    apellido     = datos.get('apellido')
     departamento = datos.get('departamento')
 
     if not any([nombre, apellido, departamento]):
@@ -91,14 +91,14 @@ def actualizar_docente(legajo):
         if resultado is None:
             return jsonify({'error': 'Error interno al actualizar'}), 500
 
-        ip_usuario = request.remote_addr
-        usuario_id = getattr(request, 'usuario_id', None)
+        ip_usuario    = request.remote_addr
+        usuario_id    = getattr(request, 'usuario_id', None)
         email_usuario = getattr(request, 'email_usuario', None)
-        accion = f"Actualizó al docente con legajo {legajo}"
+        accion        = f"Actualizó al docente con legajo {legajo}"
         registrar_actividad(usuario_id, accion, ip_usuario, email_usuario)
 
         return jsonify({'mensaje': f'Docente {legajo} actualizado correctamente'}), 200
-    except Exception as e:
+    except Exception:
         return jsonify({'error': 'Error interno al actualizar el docente'}), 500
 
 
@@ -106,17 +106,19 @@ def actualizar_docente(legajo):
 @requiere_token(rol_necesario='docente')
 def eliminar_docente(legajo):
     try:
-        eliminado = borrar_docente(legajo)
+        resultado = borrar_docente(legajo)
 
-        if eliminado is None:
+        if resultado == 'docente no encontrado':
             return jsonify({'error': 'Docente no encontrado'}), 404
+        if resultado is None:
+            return jsonify({'error': 'Error interno al eliminar el docente'}), 500
 
-        ip_usuario = request.remote_addr
-        usuario_id = getattr(request, 'usuario_id', None)
+        ip_usuario    = request.remote_addr
+        usuario_id    = getattr(request, 'usuario_id', None)
         email_usuario = getattr(request, 'email_usuario', None)
-        accion = f"Dio de baja al docente con legajo {legajo}"
+        accion        = f"Dio de baja al docente con legajo {legajo}"
         registrar_actividad(usuario_id, accion, ip_usuario, email_usuario)
 
         return jsonify({'mensaje': f'Docente {legajo} dado de baja correctamente'}), 200
-    except Exception as e:
+    except Exception:
         return jsonify({'error': 'Error interno al intentar eliminar al docente'}), 500
