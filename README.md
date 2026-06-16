@@ -38,7 +38,6 @@ gestion_curso_fiuba/
 │   │   │   ├── equipos.py                      # CRUD equipos + alumnos + evaluaciones
 │   │   │   ├── notas.py                        # CRUD notas
 │   │   │   ├── asistencias.py                  # QR + asistencias
-│   │   │   ├── materiales.py                   # CRUD materiales
 │   │   │   └── log.py                          # Consulta de log de actividad
 │   │   ├── services/
 │   │   │   ├── auth_service.py                 # Login, registro, decorador JWT
@@ -50,11 +49,9 @@ gestion_curso_fiuba/
 │   │   │   ├── equipo_service.py
 │   │   │   ├── nota_service.py
 │   │   │   ├── asistencia_service.py
-│   │   │   ├── material_service.py
 │   │   │   ├── log_service.py
 │   │   │   ├── qr_service.py
-│   │   │   ├── mail_service.py
-│   │   │   └── pdf_service.py
+│   │   │   └── mail_service.py
 │   │   └── repositories/
 │   │       ├── usuario_repository.py
 │   │       ├── alumno_repository.py
@@ -65,7 +62,6 @@ gestion_curso_fiuba/
 │   │       ├── equipo_repository.py
 │   │       ├── nota_repository.py
 │   │       ├── asistencia_repository.py
-│   │       ├── material_repository.py
 │   │       └── log_repository.py
 │   ├── database/
 │   │   ├── schema.sql                          # Creación de tablas
@@ -231,8 +227,8 @@ El token expira a las **8 horas**. Hay dos roles:
 | GET | `/cursos` | Listar todos los cursos | Cualquiera |
 | GET | `/cursos/<curso_id>` | Ver curso por ID | Cualquiera |
 | POST | `/cursos` | Crear curso | Docente |
-| PUT | `/cursos/<curso_id>` | Actualizar curso completo | Docente |
-| PATCH | `/cursos/<curso_id>` | Actualizar campos parciales | Docente |
+| PUT | `/cursos/<curso_id>` | Actualizar curso completo (todos los campos requeridos) | Docente |
+| PATCH | `/cursos/<curso_id>` | Actualizar campos parciales (solo los campos enviados) | Docente |
 | DELETE | `/cursos/<curso_id>` | Eliminar curso (lógico) | Docente |
 
 **POST /cursos**
@@ -247,8 +243,8 @@ El token expira a las **8 horas**. Hay dos roles:
 **Éxito (201):** Objeto del curso creado.
 **Errores:** 400 `{"error": "El cuerpo de la solicitud no puede estar vacío"}`, 409 `{"error": "el curso ya existe"}`
 
-#### PUT `/cursos/<int:curso_id>` y PATCH `/cursos/<int:curso_id>`
-**Request PUT (Completo):**
+#### PUT `/cursos/<int:curso_id>`
+Reemplaza todos los campos del curso. Todos los campos son obligatorios.
 ```json
 {
   "nombre": "Intro al Desarrollo (Actualizado)",
@@ -257,7 +253,10 @@ El token expira a las **8 horas**. Hay dos roles:
   "descripcion": "Nuevo temario"
 }
 ```
-**Request PATCH (Parcial):**
+**Errores:** 400 (Cuerpo vacío o campo faltante), 404 (No encontrado), 409 (Nombre duplicado).
+
+#### PATCH `/cursos/<int:curso_id>`
+Actualiza solo los campos enviados. Los campos omitidos conservan su valor actual.
 ```json
 {
   "descripcion": "Solo actualizo descripcion"
@@ -327,9 +326,11 @@ El token expira a las **8 horas**. Hay dos roles:
 | GET | `/docentes` | Listar docentes | Cualquiera |
 | GET | `/docentes/<legajo>` | Ver docente por legajo | Cualquiera |
 | POST | `/docentes` | Crear docente | Docente |
-| PUT | `/docentes/<legajo>` | Actualizar completo | Docente |
-| PATCH | `/docentes/<legajo>` | Actualizar parcial | Docente |
+| PUT | `/docentes/<legajo>` | Actualizar docente (todos los campos enviados) | Docente |
+| PATCH | `/docentes/<legajo>` | Actualizar docente (todos los campos enviados) | Docente |
 | DELETE | `/docentes/<legajo>` | Eliminar (lógico) | Docente |
+
+> **Nota:** `PUT` y `PATCH` sobre `/docentes/<legajo>` comparten el mismo handler. Ambos actualizan únicamente los campos enviados en el body (`nombre`, `apellido`, `departamento`); se requiere al menos uno. No existe validación de campos obligatorios diferenciada entre los dos métodos.
 
 #### POST `/docentes`
 **Request:**
@@ -339,13 +340,28 @@ El token expira a las **8 horas**. Hay dos roles:
   "nombre": "Martín",
   "apellido": "Sosa",
   "email": "msosa@fiuba.edu.ar",
-  "password": "password123"
+  "password": "password123",
+  "departamento": "Computación"
 }
 ```
-**Éxito (201):** Docente creado.
-**Errores:** 400 (Campos obligatorios), 409 (Legajo o email en uso).
+**Éxito (201):** `{"mensaje": "Docente registrado exitosamente", "legajo": 9001}`
+**Errores:** 400 (Campos obligatorios faltantes), 409 (Legajo o email en uso).
 
-*(Soporta GET, PUT, PATCH, DELETE con los mismos esquemas de respuesta y errores 404 que alumnos)*
+#### PUT y PATCH `/docentes/<int:legajo>`
+**Request (al menos un campo requerido):**
+```json
+{
+  "nombre": "Martín Nuevo",
+  "apellido": "Sosa",
+  "departamento": "Electrónica"
+}
+```
+**Éxito (200):** `{"mensaje": "Docente {legajo} actualizado correctamente"}`
+**Errores:** 400 `{"error": "Debés enviar al menos un campo para actualizar"}`, 404 `{"error": "Docente no encontrado"}`.
+
+#### DELETE `/docentes/<int:legajo>`
+**Éxito (200):** `{"mensaje": "Docente {legajo} dado de baja correctamente"}`
+**Errores:** 404 `{"error": "Docente no encontrado"}`, 500 (Error interno).
 
 ---
 
@@ -377,6 +393,7 @@ El token expira a las **8 horas**. Hay dos roles:
 **Éxito (201):** Objeto creado. **Errores:** 400 (Cuerpo vacío).
 
 *(Soporta GET, PUT, PATCH, DELETE con errores 400 y 404 por ID no encontrado)*
+
 ---
 
 ### Equipos
@@ -385,15 +402,18 @@ El token expira a las **8 horas**. Hay dos roles:
 |---|---|---|---|
 | GET | `/equipos` | Listar equipos | Cualquiera |
 | GET | `/equipos?curso_id=<id>` | Filtrar por curso | Cualquiera |
-| GET | `/equipos/<id>` | Ver equipo con integrantes | Cualquiera |
-| POST | `/equipos` | Crear equipo | Docente |
-| PUT | `/equipos/<id>` | Actualizar equipo | Docente |
-| PATCH | `/equipos/<id>` | Actualizar parcial | Docente |
-| DELETE | `/equipos/<id>` | Eliminar (lógico) | Docente |
-| POST | `/equipos/<id>/alumnos` | Agregar alumno | Docente |
-| DELETE | `/equipos/<id>/alumnos/<padron>` | Quitar alumno | Docente |
-| POST | `/equipos/<id>/evaluaciones` | Asociar evaluación | Docente |
-| DELETE | `/equipos/<id>/evaluaciones/<eval_id>` | Desasociar evaluación | Docente |
+| GET | `/equipos/<id>` | Ver equipo con integrantes y evaluaciones | Cualquiera |
+| POST | `/equipos` | Crear equipo | Cualquiera |
+| PUT | `/equipos/<id>` | Actualizar equipo completo (nombre requerido) | Cualquiera |
+| PATCH | `/equipos/<id>` | Actualizar equipo parcial (solo campos enviados) | Cualquiera |
+| DELETE | `/equipos/<id>` | Eliminar equipo (lógico, incluye pivot) | Cualquiera |
+| POST | `/equipos/<id>/alumnos` | Agregar alumno al equipo | Cualquiera |
+| DELETE | `/equipos/<id>/alumnos/<padron>` | Quitar alumno del equipo | Cualquiera |
+| POST | `/equipos/<id>/evaluaciones` | Asociar evaluación al equipo | Cualquiera |
+| DELETE | `/equipos/<id>/evaluaciones/<eval_id>` | Desasociar evaluación del equipo | Cualquiera |
+
+#### GET `/equipos/<int:equipo_id>`
+Devuelve el equipo con dos listas embebidas: `alumnos` (padrón, nombre, apellido, email, fecha_alta) y `evaluaciones` (evaluacion_id, nombre, fecha, peso, tipo).
 
 #### POST `/equipos`
 **Request:**
@@ -403,18 +423,49 @@ El token expira a las **8 horas**. Hay dos roles:
   "nombre": "Grupo Antigravity"
 }
 ```
-**Errores:** 404 (Curso no existe), 409 (Equipo ya existe en curso).
+**Éxito (201):** Objeto del equipo creado (incluye `alumnos` y `evaluaciones` vacíos).
+**Errores:** 400 (Campos obligatorios), 404 `{"error": "El curso {id} no existe"}`, 409 `{"error": "Ya existe un equipo con ese nombre en ese curso"}`.
 
-#### POST `/equipos/<equipo_id>/alumnos`
+#### PUT `/equipos/<int:equipo_id>`
+Actualiza el nombre del equipo. El campo `nombre` es obligatorio.
+```json
+{ "nombre": "Grupo Antigravity v2" }
+```
+**Errores:** 400 (nombre faltante), 404 (equipo no encontrado), 409 (nombre duplicado en el curso).
+
+#### PATCH `/equipos/<int:equipo_id>`
+Igual que PUT pero el `nombre` es opcional; si se omite, se conserva el actual.
+
+#### DELETE `/equipos/<int:equipo_id>`
+Realiza borrado lógico en cascada: marca como eliminado el equipo y todas sus filas en `equipos_alumnos` y `equipos_evaluaciones`.
+**Éxito (200):** `{"mensaje": "Equipo {id} eliminado correctamente"}`
+**Errores:** 404 (equipo no encontrado).
+
+#### POST `/equipos/<int:equipo_id>/alumnos`
 **Request:**
 ```json
-{
-  "padron": "103963"
-}
+{ "padron": 103963 }
 ```
-**Errores:** 404 (Equipo/Alumno no existe), 409 (Alumno ya en otro equipo).
+**Éxito (201):** `{"equipo_id": 1, "padron": 103963}`
+**Errores:** 404 (equipo o alumno no existe), 409 `{"error": "El alumno {padron} ya pertenece a este equipo"}`.
 
-*(Soporta GET, DELETE, y endpoints similares para `/equipos/<id>/evaluaciones`)*
+#### DELETE `/equipos/<int:equipo_id>/alumnos/<int:padron>`
+Borrado lógico de la fila en `equipos_alumnos`.
+**Éxito (200):** `{"mensaje": "Alumno {padron} quitado del equipo {equipo_id}"}`
+**Errores:** 404 (equipo no encontrado o alumno no pertenece al equipo).
+
+#### POST `/equipos/<int:equipo_id>/evaluaciones`
+**Request:**
+```json
+{ "evaluacion_id": 3 }
+```
+**Éxito (201):** `{"equipo_id": 1, "evaluacion_id": 3}`
+**Errores:** 404 (equipo o evaluación no existe), 409 `{"error": "La evaluación {id} ya está asociada a este equipo"}`.
+
+#### DELETE `/equipos/<int:equipo_id>/evaluaciones/<int:evaluacion_id>`
+Borrado lógico de la fila en `equipos_evaluaciones`.
+**Éxito (200):** `{"mensaje": "Evaluación {evaluacion_id} quitada del equipo {equipo_id}"}`
+**Errores:** 404 (equipo no encontrado o evaluación no está asociada al equipo).
 
 ---
 
@@ -664,16 +715,24 @@ Route → Service → Repository → DB
 
 **Manejo de errores en services:**
 ```python
-'campos_incompletos' → 400
-'email_en_uso'       → 409
-'no_encontrado'      → 404
-None                 → 500
-True / objeto        → éxito
+'campos_incompletos'     → 400
+'email_en_uso'           → 409
+'no_encontrado'          → 404
+'docente no encontrado'  → 404   
+None                     → 500
+True / objeto            → éxito
 ```
+
+**Manejo de errores en repositories:**
+Los repositories re-lanzan las excepciones de DB (con `raise`) en lugar de devolver `None`, para que el service pueda distinguir entre "registro no existe" y "error interno de base de datos".
 
 **Borrado lógico:**
 Ninguna tabla se elimina físicamente. Se usa `UPDATE SET deleted_at = NOW()`.
+Al eliminar un equipo, el borrado lógico se aplica en cascada a `equipos_alumnos` y `equipos_evaluaciones`.
 Las tablas `log_actividad` y `asistencias` son inmutables y no tienen `deleted_at`.
+
+**Registro de actividad:**
+Toda ruta de escritura (POST, PUT, PATCH, DELETE) llama a `registrar_actividad()` luego de la operación exitosa, incluyendo las rutas pivot de equipos (`/alumnos` y `/evaluaciones`).
 
 ---
 
