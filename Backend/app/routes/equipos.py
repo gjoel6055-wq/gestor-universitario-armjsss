@@ -30,7 +30,7 @@ def obtener_equipo(equipo_id):
 
 
 @equipos_bp.route('/equipos', methods=['POST'])
-@requiere_token()
+@requiere_token(rol_necesario='docente')
 def crear_equipo():
     try:
         datos = request.get_json()
@@ -59,7 +59,7 @@ def crear_equipo():
 
 
 @equipos_bp.route('/equipos/<int:equipo_id>', methods=['PUT'])
-@requiere_token()
+@requiere_token(rol_necesario='docente')
 def actualizar_equipo(equipo_id):
     try:
         datos = request.get_json()
@@ -88,7 +88,7 @@ def actualizar_equipo(equipo_id):
 
 
 @equipos_bp.route('/equipos/<int:equipo_id>', methods=['DELETE'])
-@requiere_token()
+@requiere_token(rol_necesario='docente')
 def eliminar_equipo(equipo_id):
     try:
         equipo_service.eliminar(equipo_id)
@@ -114,7 +114,7 @@ def eliminar_equipo(equipo_id):
 
 
 @equipos_bp.route('/equipos/<int:equipo_id>/alumnos', methods=['POST'])
-@requiere_token()
+@requiere_token(rol_necesario='docente')
 def agregar_alumno(equipo_id):
     try:
         datos = request.get_json()
@@ -144,7 +144,7 @@ def agregar_alumno(equipo_id):
 
 
 @equipos_bp.route('/equipos/<int:equipo_id>/alumnos/<int:padron>', methods=['DELETE'])
-@requiere_token()
+@requiere_token(rol_necesario='docente')
 def quitar_alumno(equipo_id, padron):
     try:
         equipo_service.quitar_alumno(equipo_id, padron)
@@ -169,7 +169,7 @@ def quitar_alumno(equipo_id, padron):
 
 
 @equipos_bp.route('/equipos/<int:equipo_id>/evaluaciones', methods=['POST'])
-@requiere_token()
+@requiere_token(rol_necesario='docente')
 def agregar_evaluacion(equipo_id):
     try:
         datos = request.get_json()
@@ -199,7 +199,7 @@ def agregar_evaluacion(equipo_id):
 
 
 @equipos_bp.route('/equipos/<int:equipo_id>', methods=['PATCH'])
-@requiere_token()
+@requiere_token(rol_necesario='docente')
 def actualizar_parcial_equipo(equipo_id):
     try:
         datos = request.get_json()
@@ -228,7 +228,7 @@ def actualizar_parcial_equipo(equipo_id):
 
 
 @equipos_bp.route('/equipos/<int:equipo_id>/evaluaciones/<int:evaluacion_id>', methods=['DELETE'])
-@requiere_token()
+@requiere_token(rol_necesario='docente')
 def quitar_evaluacion(equipo_id, evaluacion_id):
     try:
         equipo_service.quitar_evaluacion(equipo_id, evaluacion_id)

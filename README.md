@@ -403,14 +403,14 @@ Actualiza solo los campos enviados. Los campos omitidos conservan su valor actua
 | GET | `/equipos` | Listar equipos | Cualquiera |
 | GET | `/equipos?curso_id=<id>` | Filtrar por curso | Cualquiera |
 | GET | `/equipos/<id>` | Ver equipo con integrantes y evaluaciones | Cualquiera |
-| POST | `/equipos` | Crear equipo | Cualquiera |
-| PUT | `/equipos/<id>` | Actualizar equipo completo (nombre requerido) | Cualquiera |
-| PATCH | `/equipos/<id>` | Actualizar equipo parcial (solo campos enviados) | Cualquiera |
-| DELETE | `/equipos/<id>` | Eliminar equipo (lógico, incluye pivot) | Cualquiera |
-| POST | `/equipos/<id>/alumnos` | Agregar alumno al equipo | Cualquiera |
-| DELETE | `/equipos/<id>/alumnos/<padron>` | Quitar alumno del equipo | Cualquiera |
-| POST | `/equipos/<id>/evaluaciones` | Asociar evaluación al equipo | Cualquiera |
-| DELETE | `/equipos/<id>/evaluaciones/<eval_id>` | Desasociar evaluación del equipo | Cualquiera |
+| POST | `/equipos` | Crear equipo | Docente |
+| PUT | `/equipos/<id>` | Actualizar equipo completo (nombre requerido) | Docente |
+| PATCH | `/equipos/<id>` | Actualizar equipo parcial (solo campos enviados) | Docente |
+| DELETE | `/equipos/<id>` | Eliminar equipo (lógico, incluye pivot) | Docente |
+| POST | `/equipos/<id>/alumnos` | Agregar alumno al equipo | Docente |
+| DELETE | `/equipos/<id>/alumnos/<padron>` | Quitar alumno del equipo | Docente |
+| POST | `/equipos/<id>/evaluaciones` | Asociar evaluación al equipo | Docente |
+| DELETE | `/equipos/<id>/evaluaciones/<eval_id>` | Desasociar evaluación del equipo | Docente |
 
 #### GET `/equipos/<int:equipo_id>`
 Devuelve el equipo con dos listas embebidas: `alumnos` (padrón, nombre, apellido, email, fecha_alta) y `evaluaciones` (evaluacion_id, nombre, fecha, peso, tipo).
