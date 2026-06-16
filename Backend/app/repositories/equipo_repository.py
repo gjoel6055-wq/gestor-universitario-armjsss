@@ -228,16 +228,44 @@ def insertar_alumno(equipo_id, padron):
     conn = get_connection()
     cursor = conn.cursor()
     try:
+        # Verificamos si ya existe una fila activa (no eliminada)
         cursor.execute(
-            'INSERT INTO equipos_alumnos (equipo_id, padron) VALUES (%s, %s)',
+            '''
+            SELECT deleted_at FROM equipos_alumnos
+            WHERE equipo_id = %s AND padron = %s
+            ''',
             (equipo_id, padron)
         )
+        fila = cursor.fetchone()
+
+        if fila is not None:
+            if fila[0] is None:
+                # La fila existe y está activa → ya pertenece
+                raise ValueError(f"El alumno {padron} ya pertenece a este equipo")
+            else:
+                # Si la fila existe pero fue eliminada → reactivar
+                cursor.execute(
+                    '''
+                    UPDATE equipos_alumnos
+                    SET deleted_at = NULL, fecha_alta = NOW()
+                    WHERE equipo_id = %s AND padron = %s
+                    ''',
+                    (equipo_id, padron)
+                )
+        else:
+            # No existe → insertar normalmente
+            cursor.execute(
+                'INSERT INTO equipos_alumnos (equipo_id, padron) VALUES (%s, %s)',
+                (equipo_id, padron)
+            )
+
         conn.commit()
         return {'equipo_id': equipo_id, 'padron': padron}
+    except ValueError:
+        conn.rollback()
+        raise
     except mysql.connector.errors.IntegrityError as e:
         conn.rollback()
-        if e.errno == 1062:
-            raise ValueError(f"El alumno {padron} ya pertenece a este equipo")
         if e.errno == 1452:
             raise ValueError(f"El alumno con padrón {padron} no existe")
         raise ValueError(f"Error de integridad: {e}")
@@ -334,17 +362,39 @@ def insertar_evaluacion(equipo_id, evaluacion_id):
     cursor = conn.cursor()
     try:
         cursor.execute(
-            'INSERT INTO equipos_evaluaciones (equipo_id, evaluacion_id) VALUES (%s, %s)',
+            '''
+            SELECT deleted_at FROM equipos_evaluaciones
+            WHERE equipo_id = %s AND evaluacion_id = %s
+            ''',
             (equipo_id, evaluacion_id)
         )
+        fila = cursor.fetchone()
+
+        if fila is not None:
+            if fila[0] is None:
+                raise ValueError(f"La evaluación {evaluacion_id} ya está asociada a este equipo")
+            else:
+                cursor.execute(
+                    '''
+                    UPDATE equipos_evaluaciones
+                    SET deleted_at = NULL
+                    WHERE equipo_id = %s AND evaluacion_id = %s
+                    ''',
+                    (equipo_id, evaluacion_id)
+                )
+        else:
+            cursor.execute(
+                'INSERT INTO equipos_evaluaciones (equipo_id, evaluacion_id) VALUES (%s, %s)',
+                (equipo_id, evaluacion_id)
+            )
+
         conn.commit()
         return {'equipo_id': equipo_id, 'evaluacion_id': evaluacion_id}
+    except ValueError:
+        conn.rollback()
+        raise
     except mysql.connector.errors.IntegrityError as e:
         conn.rollback()
-        if e.errno == 1062:
-            raise ValueError(
-                f"La evaluación {evaluacion_id} ya está asociada a este equipo"
-            )
         if e.errno == 1452:
             raise ValueError(f"La evaluación {evaluacion_id} no existe")
         raise ValueError(f"Error de integridad: {e}")
