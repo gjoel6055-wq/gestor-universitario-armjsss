@@ -539,9 +539,8 @@ Borrado lógico de la fila en `equipos_evaluaciones`.
 
 | Método | Endpoint | Descripción | Rol |
 |---|---|---|---|
-| GET | `/notas?padron=<padron>` | Notas de un alumno | Docente |
-| GET | `/notas?padron=<padron>&curso_id=<id>` | Notas filtradas por curso | Docente |
-| GET | `/notas/mias` | Mis notas (alumno) | Alumno |
+| GET | `/notas` | Listar todas las notas del sistema | Docente o Alumno|
+| GET | `/notas?padron=<padron>&curso_id=<id>` | Notas filtradas por curso | Docente o Alumno |
 | POST | `/notas` | Cargar nota | Docente |
 | PUT | `/notas/<nota_id>` | Actualizar nota completa | Docente |
 | PATCH | `/notas/<nota_id>` | Actualizar parcial | Docente |
@@ -554,12 +553,12 @@ Borrado lógico de la fila en `equipos_evaluaciones`.
   "evaluacion_id": 3,
   "padron": "103963",
   "nota": 9.5,
-  "observaciones": "Excelente"
+  "observacion": "Excelente"
 }
 ```
-**Errores:** 400 (Faltan campos), 404 (Alumno/Evaluacion no encontrada), 409 (Nota ya cargada).
+**Errores:** 400 (Faltan campos) o (No se puede cargar la nota, verifica que la evaluacion y el padron existan)
 
-*(Soporta GET, PUT, PATCH, DELETE para modificar notas existentes)*
+*(Soporta GET, PUT, DELETE para modificar notas existentes)*
 
 ---
 
