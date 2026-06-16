@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.services.auth_service import requiere_token
+from app.services.log_service import registrar_actividad
 from app.services.nota_service import (
     crear_nota_servicio,
     modificar_nota_servicio,
@@ -9,7 +10,6 @@ from app.services.nota_service import (
 )
 
 notas_bp = Blueprint('notas', __name__)
-
 
 @notas_bp.route('/notas', methods=['GET'])
 @requiere_token()
@@ -29,6 +29,13 @@ def crear_nota_grupal():
         resultado = cargar_nota_grupal_servicio(datos)
         if resultado is None:
             return jsonify({'error': 'Faltan datos obligatorios o el equipo no existe.'}), 400
+            
+        ip_usuario = request.remote_addr
+        usuario_id = getattr(request, 'usuario_id', None)
+        email_usuario = getattr(request, 'email_usuario', None)
+        accion = f"Cargó nota grupal para equipo {datos.get('equipo_id')} en evaluación {datos.get('evaluacion_id')}"
+        registrar_actividad(usuario_id, accion, ip_usuario, email_usuario)
+        
         return jsonify({
             'mensaje': f'Nota grupal cargada con éxito a {len(resultado)} alumnos.',
             'padrones': resultado
@@ -52,6 +59,12 @@ def crear_nota():
     if not resultado:
         return jsonify({'error': 'No se pudo cargar la nota. Verificá que el padrón y la evaluación existan.'}), 400
 
+    ip_usuario = request.remote_addr
+    usuario_id = getattr(request, 'usuario_id', None)
+    email_usuario = getattr(request, 'email_usuario', None)
+    accion = f"Cargó nota individual para padrón {padron}"
+    registrar_actividad(usuario_id, accion, ip_usuario, email_usuario)
+
     return jsonify({'mensaje': 'Nota cargada con éxito.', 'datos': resultado}), 201
 
 
@@ -71,11 +84,23 @@ def gestionar_nota(id):
         if not exito:
             return jsonify({'error': f'No se pudo actualizar la nota {id}. Puede que no exista o esté eliminada.'}), 404
 
+        ip_usuario = request.remote_addr
+        usuario_id = getattr(request, 'usuario_id', None)
+        email_usuario = getattr(request, 'email_usuario', None)
+        accion = f"Modificó la nota con ID: {id}"
+        registrar_actividad(usuario_id, accion, ip_usuario, email_usuario)
+
         return jsonify({'mensaje': f'Nota {id} actualizada con éxito.'}), 200
 
     if request.method == 'DELETE':
         exito = borrar_nota_servicio(id)
         if not exito:
             return jsonify({'error': f'No se pudo eliminar la nota {id}.'}), 400
+
+        ip_usuario = request.remote_addr
+        usuario_id = getattr(request, 'usuario_id', None)
+        email_usuario = getattr(request, 'email_usuario', None)
+        accion = f"Eliminó la nota con ID: {id}"
+        registrar_actividad(usuario_id, accion, ip_usuario, email_usuario)
 
         return jsonify({'mensaje': f'Nota {id} eliminada correctamente (borrado lógico).'}), 200
