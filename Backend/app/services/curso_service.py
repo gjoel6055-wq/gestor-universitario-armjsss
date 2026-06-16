@@ -21,16 +21,13 @@ def crear(datos):
         raise ValueError('El año es obligatorio')
     if datos['cuatrimestre'] not in ('1C', '2C'):
         raise ValueError('El cuatrimestre debe ser 1C o 2C')
-
-    # Acepta tanto int como string numérico
     try:
         anio = int(datos['anio'])
     except (ValueError, TypeError):
         raise ValueError('El año debe ser un número válido entre 2000 y 2100')
     if anio < 2000 or anio > 2100:
         raise ValueError('El año debe ser un número válido entre 2000 y 2100')
-    datos['anio'] = anio  # Normalizar siempre a int
-
+    datos['anio'] = anio
     return curso_repository.insertar(datos)
 
 
@@ -44,7 +41,6 @@ def actualizar(curso_id, datos):
         raise ValueError('El año es obligatorio')
     if datos['cuatrimestre'] not in ('1C', '2C'):
         raise ValueError('El cuatrimestre debe ser 1C o 2C')
-
     try:
         anio = int(datos['anio'])
     except (ValueError, TypeError):
@@ -52,7 +48,6 @@ def actualizar(curso_id, datos):
     if anio < 2000 or anio > 2100:
         raise ValueError('El año debe ser un número válido entre 2000 y 2100')
     datos['anio'] = anio
-
     return curso_repository.actualizar(curso_id, datos)
 
 
@@ -68,7 +63,6 @@ def actualizar_parcial(curso_id, datos):
         if anio < 2000 or anio > 2100:
             raise ValueError('El año debe ser un número válido entre 2000 y 2100')
         datos['anio'] = anio
-
     datos_actualizados = {
         'nombre':       datos.get('nombre',       curso_actual['nombre']),
         'cuatrimestre': datos.get('cuatrimestre', curso_actual['cuatrimestre']),
