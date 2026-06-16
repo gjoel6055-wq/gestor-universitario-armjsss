@@ -1,5 +1,7 @@
 from app.db import get_connection
+import logging
 
+logger = logging.getLogger(__name__)
 
 def contar_alumnos():
     conn = get_connection()
@@ -8,7 +10,7 @@ def contar_alumnos():
         cursor.execute('SELECT COUNT(*) FROM alumnos')
         return cursor.fetchone()[0] or 0
     except Exception as e:
-        print(f'Error al contar alumnos: {e}')
+        logger.error(f'Error al contar alumnos: {e}')
         return 0
     finally:
         cursor.close()
@@ -22,7 +24,7 @@ def contar_docentes():
         cursor.execute('SELECT COUNT(*) FROM docentes')
         return cursor.fetchone()[0] or 0
     except Exception as e:
-        print(f'Error al contar docentes: {e}')
+        logger.error(f'Error al contar docentes: {e}')
         return 0
     finally:
         cursor.close()
@@ -36,7 +38,7 @@ def contar_cursos_activos():
         cursor.execute('SELECT COUNT(*) FROM cursos')
         return cursor.fetchone()[0] or 0
     except Exception as e:
-        print(f'Error al contar cursos activos: {e}')
+        logger.error(f'Error al contar cursos activos: {e}')
         return 0
     finally:
         cursor.close()
@@ -57,7 +59,7 @@ def calcular_asistencia_promedio():
         porcentaje = round((asistencias_presentes / total_asistencias) * 100, 2)
         return f"{porcentaje}%"
     except Exception as e:
-        print(f'Error al calcular asistencia promedio: {e}')
+        logger.error(f'Error al calcular asistencia promedio: {e}')
         return '0%'
     finally:
         cursor.close()
@@ -74,7 +76,7 @@ def promedio_notas():
             return 0.0
         return round(float(promedio), 2)
     except Exception as e:
-        print(f'Error al calcular promedio de notas: {e}')
+        logger.error(f'Error al calcular promedio de notas: {e}')
         return 0.0
     finally:
         cursor.close()
@@ -88,7 +90,7 @@ def contar_evaluaciones():
         cursor.execute('SELECT COUNT(*) FROM evaluaciones')
         return cursor.fetchone()[0] or 0
     except Exception as e:
-        print(f'Error al contar evaluaciones: {e}')
+        logger.error(f'Error al contar evaluaciones: {e}')
         return 0
     finally:
         cursor.close()
@@ -102,7 +104,7 @@ def contar_materiales():
         cursor.execute('SELECT COUNT(*) FROM materiales')
         return cursor.fetchone()[0] or 0
     except Exception as e:
-        print(f'Error al contar materiales: {e}')
+        logger.error(f'Error al contar materiales: {e}')
         return 0
     finally:
         cursor.close()
@@ -116,7 +118,7 @@ def contar_alumnos_en_abandono():
         cursor.execute('SELECT COUNT(*) FROM alumnos WHERE abandono = 1')
         return cursor.fetchone()[0] or 0
     except Exception as e:
-        print(f'Error al contar alumnos en abandono: {e}')
+        logger.error(f'Error al contar alumnos en abandono: {e}')
         return 0
     finally:
         cursor.close()
@@ -139,7 +141,7 @@ def asistencia_ultima_semana():
         porcentaje = round((presentes / total) * 100, 2)
         return {'presentes': presentes, 'total': total, 'porcentaje': f"{porcentaje}%"}
     except Exception as e:
-        print(f'Error al calcular asistencia de la última semana: {e}')
+        logger.error(f'Error al calcular asistencia de la última semana: {e}')
         return {'presentes': 0, 'total': 0, 'porcentaje': '0%'}
     finally:
         cursor.close()

@@ -1,6 +1,8 @@
 from datetime import datetime
 from app.db import get_connection
+import logging
 
+logger = logging.getLogger(__name__)
 
 def obtener_todos_tipos():
     conn = get_connection()
@@ -16,7 +18,7 @@ def obtener_todos_tipos():
         )
         return cursor.fetchall() or []
     except Exception as e:
-        print(f'Error al obtener tipos de evaluación: {e}')
+        logger.error(f'Error al obtener tipos de evaluación: {e}')
         return []
     finally:
         cursor.close()
@@ -37,7 +39,7 @@ def obtener_tipo_por_id(tipo_id):
         )
         return cursor.fetchone()
     except Exception as e:
-        print(f'Error al obtener tipo {tipo_id}: {e}')
+        logger.error(f'Error al obtener tipo {tipo_id}: {e}')
         return None
     finally:
         cursor.close()
@@ -57,7 +59,7 @@ def guardar_tipo_bd(datos):
         return obtener_tipo_por_id(nuevo_id)
     except Exception as e:
         conn.rollback()
-        print(f'Error al guardar tipo: {e}')
+        logger.error(f'Error al guardar tipo: {e}')
         return None
     finally:
         cursor.close()
@@ -80,7 +82,7 @@ def modificar_tipo_bd(tipo_id, datos):
         return obtener_tipo_por_id(tipo_id)
     except Exception as e:
         conn.rollback()
-        print(f'Error al modificar tipo {tipo_id}: {e}')
+        logger.error(f'Error al modificar tipo {tipo_id}: {e}')
         return None
     finally:
         cursor.close()
@@ -99,7 +101,7 @@ def borrar_tipo_bd(tipo_id):
         return True
     except Exception as e:
         conn.rollback()
-        print(f'Error al borrar tipo {tipo_id}: {e}')
+        logger.error(f'Error al borrar tipo {tipo_id}: {e}')
         return False
     finally:
         cursor.close()

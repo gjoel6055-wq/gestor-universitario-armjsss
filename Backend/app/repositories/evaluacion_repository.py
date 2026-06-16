@@ -1,5 +1,8 @@
 from datetime import datetime
 from app.db import get_connection
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def obtener_todas_evaluaciones(curso_id=None):
@@ -38,7 +41,7 @@ def obtener_todas_evaluaciones(curso_id=None):
             )
         return cursor.fetchall() or []
     except Exception as e:
-        print(f'Error al obtener evaluaciones: {e}')
+        logger.error(f'Error al obtener evaluaciones: {e}')
         return []
     finally:
         cursor.close()
@@ -64,7 +67,7 @@ def obtener_evaluacion_por_id(evaluacion_id):
         )
         return cursor.fetchone()
     except Exception as e:
-        print(f'Error al obtener evaluacion {evaluacion_id}: {e}')
+        logger.error(f'Error al obtener evaluacion {evaluacion_id}: {e}')
         return None
     finally:
         cursor.close()
@@ -94,7 +97,7 @@ def guardar_evaluacion_bd(datos):
         return obtener_evaluacion_por_id(nuevo_id)
     except Exception as e:
         conn.rollback()
-        print(f'Error al guardar evaluacion: {e}')
+        logger.error(f'Error al guardar evaluacion: {e}')
         return None
     finally:
         cursor.close()
@@ -126,7 +129,7 @@ def modificar_evaluacion_bd(evaluacion_id, datos):
         return obtener_evaluacion_por_id(evaluacion_id)
     except Exception as e:
         conn.rollback()
-        print(f'Error al modificar evaluacion {evaluacion_id}: {e}')
+        logger.error(f'Error al modificar evaluacion {evaluacion_id}: {e}')
         return None
     finally:
         cursor.close()
@@ -145,7 +148,7 @@ def borrar_evaluacion_bd(evaluacion_id):
         return True
     except Exception as e:
         conn.rollback()
-        print(f'Error al borrar evaluacion {evaluacion_id}: {e}')
+        logger.error(f'Error al borrar evaluacion {evaluacion_id}: {e}')
         return False
     finally:
         cursor.close()

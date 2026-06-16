@@ -1,7 +1,7 @@
 from app.db import get_connection
 from datetime import datetime
-import logging
 import mysql.connector
+import logging
 
 logger = logging.getLogger(__name__)
 
