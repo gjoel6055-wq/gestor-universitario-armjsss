@@ -175,7 +175,7 @@ El token expira a las **8 horas**. Hay dos roles:
 
 ## Endpoints
 
-### Autenticación
+## Autenticación y Autorización
 
 | Método | Endpoint | Descripción | Auth |
 |---|---|---|---|
@@ -183,7 +183,14 @@ El token expira a las **8 horas**. Hay dos roles:
 | POST | `/registro` | Registrar cuenta | No |
 | POST | `/logout` | Cerrar sesión | Sí |
 
-**POST /login**
+### Iniciar sesión
+Autentica al usuario en el sistema y retorna un token JWT válido por 8 horas.
+
+*   **Ruta:** `/login`
+*   **Método:** `POST`
+*   **Auth requerida:** No
+
+**Ejemplo de Petición:**
 ```json
 {
   "email": "garcia.carlos@fiuba.edu.ar",
@@ -191,22 +198,36 @@ El token expira a las **8 horas**. Hay dos roles:
 }
 ```
 
-**Respuesta exitosa:**
-```json
-{
-  "mensaje": "Login exitoso",
-  "token": "eyJ...",
-  "datos": {
-    "nombre": "Carlos",
-    "email": "garcia.carlos@fiuba.edu.ar",
-    "rol": "docente"
-  }
-}
-```
-**Errores:** 404 `{"error": "El email ingresado no se encuentra registrado."}`, 401 `{"error": "La contraseña ingresada es incorrecta"}`
+**Respuestas HTTP:**
+*   `200 OK`
+    ```json
+    {
+      "mensaje": "Login exitoso",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5...",
+      "datos": {
+        "nombre": "Carlos",
+        "email": "garcia.carlos@fiuba.edu.ar",
+        "rol": "docente"
+      }
+    }
+    ```
+*   `401 Unauthorized`
+    ```json
+    {"error": "La contraseña ingresada es incorrecta"}
+    ```
+*   `404 Not Found`
+    ```json
+    {"error": "El email ingresado no se encuentra registrado."}
+    ```
 
-#### POST `/registro`
-**Request:**
+### Registrar cuenta
+Permite la creación de un nuevo usuario en la base de datos (con rol alumno por defecto).
+
+*   **Ruta:** `/registro`
+*   **Método:** `POST`
+*   **Auth requerida:** No
+
+**Ejemplo de Petición:**
 ```json
 {
   "nombre": "Juan",
@@ -216,13 +237,40 @@ El token expira a las **8 horas**. Hay dos roles:
   "padron": "105554"
 }
 ```
-**Éxito (201 Created):** `{"mensaje": "Se creó el usuario con exito."}`
-**Errores:** 400 `{"error": "Todos los campos son obligatorios"}`, 409 `{"error": "El email ingresado ya se encuentra en uso."}`
 
-#### POST `/logout`
-**Éxito (200 OK):** `{"mensaje": "Se cerró la sesión con exito."}`
+**Respuestas HTTP:**
+*   `201 Created`
+    ```json
+    {"mensaje": "Se creó el usuario con exito."}
+    ```
+*   `400 Bad Request`
+    ```json
+    {"error": "Todos los campos son obligatorios"}
+    ```
+*   `400 Bad Request` (Si el email es inválido)
+    ```json
+    {"error": "El formato del email no es válido"}
+    ```
+*   `409 Conflict`
+    ```json
+    {"error": "El email ingresado ya se encuentra en uso."}
+    ```
+
+### Cerrar Sesión
+Invalida el token del lado del cliente.
+
+*   **Ruta:** `/logout`
+*   **Método:** `POST`
+*   **Auth requerida:** Sí
+
+**Respuestas HTTP:**
+*   `200 OK`
+    ```json
+    {"mensaje": "Se cerró la sesión con exito."}
+    ```
 
 ---
+
 
 ### Cursos
 
@@ -454,26 +502,61 @@ El token expira a las **8 horas**. Hay dos roles:
 | POST | `/asistencia/validar-qr/<string:token>` | Validar QR escaneado           | Público |
 | POST | `//enviar_mails_asistencia` | Enviar QR por email a un curso | Docente |
 
-#### POST `/enviar_mails_asistencia`
-**Request:**
+### Enviar Mails con Códigos QR
+*   **Ruta:** `/enviar_mails_asistencia`
+*   **Método:** `POST`
+
+**Ejemplo de Petición:**
 ```json
 {
   "curso_id": 1
 }
 ```
-**Éxito (201):** `{"mensaje": "Proceso finalizado", "detalles": {...}}`
-**Errores:** 400 `{"error": "Falta el curso_id o no hay alumnos"}`
 
-#### POST `/asistencia/validar-qr/<string:token>` (Sin JSON Body)
-**Éxito (201):** `{"mensaje": "Se ha registrado su asistencia con exito."}`
-**Info (200):** `{"mensaje": "Tu asistencia ya fue registrada previamente."}`
-**Errores:**
-- 404: `{"error": "El qr escaneado es invalido"}`
-- 410: `{"error": "El codigo escaneado ya expiró, pruebe con un codigo vigente"}`
-- 500: `{"error": "Ha ocurrido un error al registrar su asistencia..."}`
+**Respuestas HTTP:**
+*   `200 OK` (Correos enviados o en cola)
+*   `400 Bad Request`: `{"error": "Falta el curso_id o el curso no tiene alumnos"}`
 
-#### GET `/asistencias_curso?fecha=YYYY-MM-DD`
-**Éxito (200):** `{"mensaje": "se a devuelto la lista...", "lista_alumnos": [...]}`
+### Validar QR de Asistencia
+*   **Ruta:** `/asistencia/validar-qr/<token_qr>`
+*   **Método:** `POST`
+
+**Respuestas HTTP:**
+*   `201 Created`
+    ```json
+    {"mensaje": "Se ha registrado su asistencia con exito."}
+    ```
+*   `200 OK`
+    ```json
+    {"mensaje": "Tu asistencia ya fue registrada previamente."}
+    ```
+*   `404 Not Found`
+    ```json
+    {"error": "El qr escaneado es invalido"}
+    ```
+*   `410 Gone`
+    ```json
+    {"error": "El codigo escaneado ya expiró, pruebe con un codigo vigente"}
+    ```
+*   `500 Internal Server Error`
+    ```json
+    {"error": "Ha ocurrido un error al registrar su asistencia, intentelo otra vez."}
+    ```
+
+### Obtener lista de asistencias
+* **Ruta:** `/asistencias_curso?fecha=YYYY-MM-DD`
+* **Método:** `GET`
+* **Respuestas:**
+  * **200 OK**:
+    ```json
+    {
+      "mensaje": "se a devuelto la lista de asistencia con exito",
+      "lista_alumnos": [
+        {"padron": 103963, "presente": true}
+      ]
+    }
+    ```
+
 
 ---
 
@@ -485,6 +568,26 @@ El token expira a las **8 horas**. Hay dos roles:
 | GET | `/dashboard/stats` | Estadísticas generales | Docente |
 | GET | `/dashboard/stats?curso_id=<id>` | Stats por curso | Docente |
 | GET | `/dashboard/alumnos` | Listado con filtros | Docente |
+
+### Obtener historial inmutable
+* **Ruta:** `/historial_logs`
+* **Método:** `GET`
+* **Respuestas:**
+  * **200 OK**:
+    ```json
+    {
+      "historial": [
+        {
+          "log_id": 15,
+          "email": "garcia.carlos@fiuba.edu.ar",
+          "accion": "Creó un curso nuevo",
+          "fecha_actividad": "2026-06-15 15:30:00",
+          "ip": "127.0.0.1"
+        }
+      ]
+    }
+    ```
+  * **500 Internal Server Error**: `{"error": "No se pudo acceder al historial de actividad."}`
 
 ## Base de datos
 
