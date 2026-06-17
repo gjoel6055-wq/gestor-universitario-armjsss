@@ -1,13 +1,12 @@
-# docente_repository.py
 import logging
-from app.db import get_connection
+from app.db import get_connection, RealDictCursor
+import psycopg2
 
 logger = logging.getLogger(__name__)
 
-
 def obtener_todos_los_docentes():
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         query = '''
             SELECT d.legajo,
@@ -25,17 +24,16 @@ def obtener_todos_los_docentes():
         '''
         cursor.execute(query)
         return cursor.fetchall() or []
-    except Exception as e:
+    except psycopg2.Error as e:
         logger.error(f'Error al obtener docentes: {e}')
         return []
     finally:
         cursor.close()
         conn.close()
 
-
 def buscar_docente_por_legajo(legajo):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         query = '''
             SELECT d.legajo,
@@ -53,13 +51,12 @@ def buscar_docente_por_legajo(legajo):
         '''
         cursor.execute(query, (legajo,))
         return cursor.fetchone()
-    except Exception as e:
+    except psycopg2.Error as e:
         logger.error(f'Error al buscar docente por legajo: {e}')
         return None
     finally:
         cursor.close()
         conn.close()
-
 
 def crear_docente_en_bd(legajo, nombre, apellido, email, password_hash, departamento=''):
     conn = get_connection()
@@ -79,28 +76,29 @@ def crear_docente_en_bd(legajo, nombre, apellido, email, password_hash, departam
         if cursor.fetchone():
             return 'email en uso'
 
-        # Crear usuario
         cursor.execute(
-            'INSERT INTO usuarios (email, password_hash, nombre, apellido, rol) VALUES (%s, %s, %s, %s, %s)',
+            '''
+            INSERT INTO usuarios (email, password_hash, nombre, apellido, rol)
+            VALUES (%s, %s, %s, %s, %s)
+            RETURNING usuario_id
+            ''',
             (email, password_hash, nombre, apellido, 'docente')
         )
-        nuevo_usuario_id = cursor.lastrowid
+        nuevo_usuario_id = cursor.fetchone()[0]
 
-        # Crear docente asociado
         cursor.execute(
             'INSERT INTO docentes (legajo, usuario_id, departamento) VALUES (%s, %s, %s)',
             (legajo, nuevo_usuario_id, departamento)
         )
         conn.commit()
         return legajo
-    except Exception as e:
+    except psycopg2.Error as e:
         conn.rollback()
         logger.error(f'Error al crear docente: {e}')
         return None
     finally:
         cursor.close()
         conn.close()
-
 
 def actualizar_docente_en_bd(legajo, nombre=None, apellido=None, departamento=None):
     docente = buscar_docente_por_legajo(legajo)
@@ -133,14 +131,13 @@ def actualizar_docente_en_bd(legajo, nombre=None, apellido=None, departamento=No
 
         conn.commit()
         return True
-    except Exception as e:
+    except psycopg2.Error as e:
         conn.rollback()
         logger.error(f'Error al actualizar docente {legajo}: {e}')
         return None
     finally:
         cursor.close()
         conn.close()
-
 
 def eliminar_docente_en_bd(legajo):
     docente = buscar_docente_por_legajo(legajo)
@@ -160,7 +157,7 @@ def eliminar_docente_en_bd(legajo):
         )
         conn.commit()
         return True
-    except Exception as e:
+    except psycopg2.Error as e:
         conn.rollback()
         logger.error(f'Error al eliminar docente: {e}')
         return None

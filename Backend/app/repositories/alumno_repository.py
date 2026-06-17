@@ -1,9 +1,9 @@
-from app.db import get_connection
-
+from app.db import get_connection, RealDictCursor
+import psycopg2
 
 def obtener_todos_los_alumnos():
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         query = '''
             SELECT a.padron,
@@ -19,17 +19,16 @@ def obtener_todos_los_alumnos():
         '''
         cursor.execute(query)
         return cursor.fetchall() or []
-    except Exception as e:
+    except psycopg2.Error as e:
         print(f'Error al obtener alumnos: {e}')
         return []
     finally:
         cursor.close()
         conn.close()
 
-
 def buscar_alumno_por_padron(padron):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         query = '''
             SELECT a.padron,
@@ -45,13 +44,12 @@ def buscar_alumno_por_padron(padron):
         '''
         cursor.execute(query, (padron,))
         return cursor.fetchone()
-    except Exception as e:
+    except psycopg2.Error as e:
         print(f'Error al buscar alumno por padrón: {e}')
         return None
     finally:
         cursor.close()
         conn.close()
-
 
 def crear_alumno_en_bd(padron, nombre, apellido, email, password_hash, abandono=False):
     conn = get_connection()
@@ -66,24 +64,27 @@ def crear_alumno_en_bd(padron, nombre, apellido, email, password_hash, abandono=
             return 'email en uso'
 
         cursor.execute(
-            'INSERT INTO usuarios (email, password_hash, nombre, apellido, rol) VALUES (%s, %s, %s, %s, %s)',
+            '''
+            INSERT INTO usuarios (email, password_hash, nombre, apellido, rol)
+            VALUES (%s, %s, %s, %s, %s)
+            RETURNING usuario_id
+            ''',
             (email, password_hash, nombre, apellido, 'alumno')
         )
-        usuario_id = cursor.lastrowid
+        usuario_id = cursor.fetchone()[0]
         cursor.execute(
             'INSERT INTO alumnos (padron, usuario_id, abandono) VALUES (%s, %s, %s)',
-            (padron, usuario_id, int(bool(abandono)))
+            (padron, usuario_id, bool(abandono))
         )
         conn.commit()
         return True
-    except Exception as e:
+    except psycopg2.Error as e:
         conn.rollback()
         print(f'Error al crear alumno: {e}')
         return None
     finally:
         cursor.close()
         conn.close()
-
 
 def actualizar_alumno_en_bd(padron, nombre=None, apellido=None, email=None, password_hash=None, abandono=None, cursos=None):
     alumno = buscar_alumno_por_padron(padron)
@@ -120,27 +121,23 @@ def actualizar_alumno_en_bd(padron, nombre=None, apellido=None, email=None, pass
             cursor.execute(query, tuple(params))
 
         if abandono is not None:
-            cursor.execute('UPDATE alumnos SET abandono = %s WHERE padron = %s', (int(bool(abandono)), padron))
+            cursor.execute('UPDATE alumnos SET abandono = %s WHERE padron = %s', (bool(abandono), padron))
 
-        # Sincronizar cursos si se pasó la lista
         if cursos is not None:
-            # Primero eliminamos las relaciones anteriores
             cursor.execute('DELETE FROM alumnos_cursos WHERE padron = %s', (padron,))
-            # Insertamos las nuevas
             for curso_id in cursos:
                 if curso_id:
                     cursor.execute('INSERT INTO alumnos_cursos (padron, curso_id) VALUES (%s, %s)', (padron, int(curso_id)))
 
         conn.commit()
         return True
-    except Exception as e:
+    except psycopg2.Error as e:
         conn.rollback()
         print(f'Error al actualizar alumno: {e}')
         return None
     finally:
         cursor.close()
         conn.close()
-
 
 def eliminar_alumno_en_bd(padron):
     alumno = buscar_alumno_por_padron(padron)
@@ -153,7 +150,7 @@ def eliminar_alumno_en_bd(padron):
         cursor.execute('DELETE FROM usuarios WHERE usuario_id = %s', (alumno['usuario_id'],))
         conn.commit()
         return True
-    except Exception as e:
+    except psycopg2.Error as e:
         conn.rollback()
         print(f'Error al eliminar alumno: {e}')
         return None
@@ -161,10 +158,9 @@ def eliminar_alumno_en_bd(padron):
         cursor.close()
         conn.close()
 
-
 def obtener_cursos_del_alumno(padron):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         query = '''
             SELECT c.curso_id, c.nombre, c.cuatrimestre, c.anio, c.descripcion
@@ -175,10 +171,9 @@ def obtener_cursos_del_alumno(padron):
         '''
         cursor.execute(query, (padron,))
         return cursor.fetchall() or []
-    except Exception as e:
+    except psycopg2.Error as e:
         print(f'Error al obtener cursos del alumno {padron}: {e}')
         return []
     finally:
         cursor.close()
         conn.close()
-

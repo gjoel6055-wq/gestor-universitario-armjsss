@@ -16,7 +16,6 @@ def contar_alumnos():
         cursor.close()
         conn.close()
 
-
 def contar_docentes():
     conn = get_connection()
     cursor = conn.cursor()
@@ -29,7 +28,6 @@ def contar_docentes():
     finally:
         cursor.close()
         conn.close()
-
 
 def contar_cursos_activos():
     conn = get_connection()
@@ -44,12 +42,11 @@ def contar_cursos_activos():
         cursor.close()
         conn.close()
 
-
 def calcular_asistencia_promedio():
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute('SELECT SUM(presente), COUNT(*) FROM asistencias')
+        cursor.execute('SELECT SUM(presente::int), COUNT(*) FROM asistencias')
         resultado = cursor.fetchone()
         if not resultado or resultado[1] == 0:
             return '0%'
@@ -64,7 +61,6 @@ def calcular_asistencia_promedio():
     finally:
         cursor.close()
         conn.close()
-
 
 def promedio_notas():
     conn = get_connection()
@@ -82,7 +78,6 @@ def promedio_notas():
         cursor.close()
         conn.close()
 
-
 def contar_evaluaciones():
     conn = get_connection()
     cursor = conn.cursor()
@@ -95,7 +90,6 @@ def contar_evaluaciones():
     finally:
         cursor.close()
         conn.close()
-
 
 def contar_materiales():
     conn = get_connection()
@@ -110,12 +104,11 @@ def contar_materiales():
         cursor.close()
         conn.close()
 
-
 def contar_alumnos_en_abandono():
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute('SELECT COUNT(*) FROM alumnos WHERE abandono = 1')
+        cursor.execute('SELECT COUNT(*) FROM alumnos WHERE abandono = true')
         return cursor.fetchone()[0] or 0
     except Exception as e:
         logger.error(f'Error al contar alumnos en abandono: {e}')
@@ -124,13 +117,12 @@ def contar_alumnos_en_abandono():
         cursor.close()
         conn.close()
 
-
 def asistencia_ultima_semana():
     conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
-            'SELECT SUM(presente), COUNT(*) FROM asistencias WHERE fecha >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)'
+            "SELECT SUM(presente::int), COUNT(*) FROM asistencias WHERE fecha >= CURRENT_DATE - INTERVAL '7 days'"
         )
         resultado = cursor.fetchone()
         presentes = resultado[0] or 0

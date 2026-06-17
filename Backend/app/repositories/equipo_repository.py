@@ -1,13 +1,13 @@
 import logging
-import mysql.connector
-from app.db import get_connection
+import psycopg2
+from app.db import get_connection, RealDictCursor
 
 logger = logging.getLogger(__name__)
 
 # EQUIPOS
 def obtener_todos(curso_id=None):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         if curso_id:
             cursor.execute(
@@ -32,17 +32,16 @@ def obtener_todos(curso_id=None):
                 '''
             )
         return cursor.fetchall()
-    except Exception as e:
+    except psycopg2.Error as e:
         logger.error(f"Error al obtener equipos: {e}")
         return []
     finally:
         cursor.close()
         conn.close()
 
-
 def obtener_por_id(equipo_id):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         cursor.execute(
             '''
@@ -59,42 +58,43 @@ def obtener_por_id(equipo_id):
             equipo['alumnos']      = obtener_alumnos_del_equipo(equipo_id)
             equipo['evaluaciones'] = obtener_evaluaciones_del_equipo(equipo_id)
         return equipo
-    except Exception as e:
+    except psycopg2.Error as e:
         logger.error(f"Error al obtener equipo {equipo_id}: {e}")
         return None
     finally:
         cursor.close()
         conn.close()
 
-
 def insertar(datos):
     conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
-            'INSERT INTO equipos (curso_id, nombre) VALUES (%s, %s)',
+            '''
+            INSERT INTO equipos (curso_id, nombre)
+            VALUES (%s, %s)
+            RETURNING equipo_id
+            ''',
             (datos['curso_id'], datos['nombre'])
         )
+        nuevo_id = cursor.fetchone()[0]
         conn.commit()
-        nuevo_id = cursor.lastrowid
         return obtener_por_id(nuevo_id)
-    except mysql.connector.errors.IntegrityError as e:
+    except psycopg2.errors.UniqueViolation:
         conn.rollback()
-        if e.errno == 1062:
-            raise ValueError(
-                f"Ya existe un equipo con el nombre '{datos['nombre']}' en ese curso"
-            )
-        if e.errno == 1452:
-            raise ValueError(f"El curso {datos['curso_id']} no existe")
-        raise ValueError(f"Error de integridad: {e}")
-    except Exception as e:
+        raise ValueError(
+            f"Ya existe un equipo con el nombre '{datos['nombre']}' en ese curso"
+        )
+    except psycopg2.errors.ForeignKeyViolation:
+        conn.rollback()
+        raise ValueError(f"El curso {datos['curso_id']} no existe")
+    except psycopg2.Error as e:
         conn.rollback()
         logger.error(f"Error al insertar equipo: {e}")
         return None
     finally:
         cursor.close()
         conn.close()
-
 
 def actualizar(equipo_id, datos):
     conn = get_connection()
@@ -111,14 +111,12 @@ def actualizar(equipo_id, datos):
         )
         conn.commit()
         return obtener_por_id(equipo_id)
-    except mysql.connector.errors.IntegrityError as e:
+    except psycopg2.errors.UniqueViolation:
         conn.rollback()
-        if e.errno == 1062:
-            raise ValueError(
-                f"Ya existe un equipo con el nombre '{datos['nombre']}' en ese curso"
-            )
-        raise ValueError(f"Error de integridad: {e}")
-    except Exception as e:
+        raise ValueError(
+            f"Ya existe un equipo con el nombre '{datos['nombre']}' en ese curso"
+        )
+    except psycopg2.Error as e:
         conn.rollback()
         logger.error(f"Error al actualizar equipo {equipo_id}: {e}")
         return None
@@ -126,12 +124,10 @@ def actualizar(equipo_id, datos):
         cursor.close()
         conn.close()
 
-
 def eliminar(equipo_id):
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        # Marca el equipo como eliminado
         cursor.execute(
             '''
             UPDATE equipos
@@ -141,7 +137,6 @@ def eliminar(equipo_id):
             ''',
             (equipo_id,)
         )
-        # Marca las relaciones pivot como eliminadas también
         cursor.execute(
             '''
             UPDATE equipos_alumnos
@@ -162,7 +157,7 @@ def eliminar(equipo_id):
         )
         conn.commit()
         return True
-    except Exception as e:
+    except psycopg2.Error as e:
         conn.rollback()
         logger.error(f"Error al eliminar equipo {equipo_id}: {e}")
         return False
@@ -170,11 +165,10 @@ def eliminar(equipo_id):
         cursor.close()
         conn.close()
 
-
 # PIVOT EQUIPOS_ALUMNOS
 def obtener_alumnos_del_equipo(equipo_id):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         cursor.execute(
             '''
@@ -194,17 +188,16 @@ def obtener_alumnos_del_equipo(equipo_id):
             (equipo_id,)
         )
         return cursor.fetchall()
-    except Exception as e:
+    except psycopg2.Error as e:
         logger.error(f"Error al obtener alumnos del equipo {equipo_id}: {e}")
         return []
     finally:
         cursor.close()
         conn.close()
 
-
 def alumno_en_equipo(equipo_id, padron):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         cursor.execute(
             '''
@@ -216,19 +209,17 @@ def alumno_en_equipo(equipo_id, padron):
             (equipo_id, padron)
         )
         return cursor.fetchone() is not None
-    except Exception as e:
+    except psycopg2.Error as e:
         logger.error(f"Error al verificar alumno en equipo: {e}")
         return False
     finally:
         cursor.close()
         conn.close()
 
-
 def insertar_alumno(equipo_id, padron):
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        # Verificamos si ya existe una fila activa (no eliminada)
         cursor.execute(
             '''
             SELECT deleted_at FROM equipos_alumnos
@@ -240,10 +231,8 @@ def insertar_alumno(equipo_id, padron):
 
         if fila is not None:
             if fila[0] is None:
-                # La fila existe y está activa → ya pertenece
                 raise ValueError(f"El alumno {padron} ya pertenece a este equipo")
             else:
-                # Si la fila existe pero fue eliminada → reactivar
                 cursor.execute(
                     '''
                     UPDATE equipos_alumnos
@@ -253,7 +242,6 @@ def insertar_alumno(equipo_id, padron):
                     (equipo_id, padron)
                 )
         else:
-            # No existe → insertar normalmente
             cursor.execute(
                 'INSERT INTO equipos_alumnos (equipo_id, padron) VALUES (%s, %s)',
                 (equipo_id, padron)
@@ -264,19 +252,16 @@ def insertar_alumno(equipo_id, padron):
     except ValueError:
         conn.rollback()
         raise
-    except mysql.connector.errors.IntegrityError as e:
+    except psycopg2.errors.ForeignKeyViolation:
         conn.rollback()
-        if e.errno == 1452:
-            raise ValueError(f"El alumno con padrón {padron} no existe")
-        raise ValueError(f"Error de integridad: {e}")
-    except Exception as e:
+        raise ValueError(f"El alumno con padrón {padron} no existe")
+    except psycopg2.Error as e:
         conn.rollback()
         logger.error(f"Error al agregar alumno al equipo: {e}")
         return None
     finally:
         cursor.close()
         conn.close()
-
 
 def eliminar_alumno(equipo_id, padron):
     conn = get_connection()
@@ -294,7 +279,7 @@ def eliminar_alumno(equipo_id, padron):
         )
         conn.commit()
         return True
-    except Exception as e:
+    except psycopg2.Error as e:
         conn.rollback()
         logger.error(f"Error al eliminar alumno del equipo: {e}")
         return False
@@ -302,11 +287,10 @@ def eliminar_alumno(equipo_id, padron):
         cursor.close()
         conn.close()
 
-
 # PIVOT EQUIPOS_EVALUACIONES
 def obtener_evaluaciones_del_equipo(equipo_id):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         cursor.execute(
             '''
@@ -327,17 +311,16 @@ def obtener_evaluaciones_del_equipo(equipo_id):
             (equipo_id,)
         )
         return cursor.fetchall()
-    except Exception as e:
+    except psycopg2.Error as e:
         logger.error(f"Error al obtener evaluaciones del equipo {equipo_id}: {e}")
         return []
     finally:
         cursor.close()
         conn.close()
 
-
 def evaluacion_en_equipo(equipo_id, evaluacion_id):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         cursor.execute(
             '''
@@ -349,13 +332,12 @@ def evaluacion_en_equipo(equipo_id, evaluacion_id):
             (equipo_id, evaluacion_id)
         )
         return cursor.fetchone() is not None
-    except Exception as e:
+    except psycopg2.Error as e:
         logger.error(f"Error al verificar evaluacion en equipo: {e}")
         return False
     finally:
         cursor.close()
         conn.close()
-
 
 def insertar_evaluacion(equipo_id, evaluacion_id):
     conn = get_connection()
@@ -393,12 +375,10 @@ def insertar_evaluacion(equipo_id, evaluacion_id):
     except ValueError:
         conn.rollback()
         raise
-    except mysql.connector.errors.IntegrityError as e:
+    except psycopg2.errors.ForeignKeyViolation:
         conn.rollback()
-        if e.errno == 1452:
-            raise ValueError(f"La evaluación {evaluacion_id} no existe")
-        raise ValueError(f"Error de integridad: {e}")
-    except Exception as e:
+        raise ValueError(f"La evaluación {evaluacion_id} no existe")
+    except psycopg2.Error as e:
         conn.rollback()
         logger.error(f"Error al agregar evaluacion al equipo: {e}")
         return None
@@ -406,9 +386,7 @@ def insertar_evaluacion(equipo_id, evaluacion_id):
         cursor.close()
         conn.close()
 
-
 def eliminar_evaluacion(equipo_id, evaluacion_id):
-    # Borrado lógico en la pivot
     conn = get_connection()
     cursor = conn.cursor()
     try:
@@ -424,7 +402,7 @@ def eliminar_evaluacion(equipo_id, evaluacion_id):
         )
         conn.commit()
         return True
-    except Exception as e:
+    except psycopg2.Error as e:
         conn.rollback()
         logger.error(f"Error al eliminar evaluacion del equipo: {e}")
         return False

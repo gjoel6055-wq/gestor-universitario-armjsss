@@ -1,13 +1,13 @@
 from datetime import datetime
-from app.db import get_connection
+from app.db import get_connection, RealDictCursor
+import psycopg2
 import logging
 
 logger = logging.getLogger(__name__)
 
-
 def obtener_todas_evaluaciones(curso_id=None):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         if curso_id:
             cursor.execute(
@@ -40,17 +40,16 @@ def obtener_todas_evaluaciones(curso_id=None):
                 '''
             )
         return cursor.fetchall() or []
-    except Exception as e:
+    except psycopg2.Error as e:
         logger.error(f'Error al obtener evaluaciones: {e}')
         return []
     finally:
         cursor.close()
         conn.close()
 
-
 def obtener_evaluacion_por_id(evaluacion_id):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         cursor.execute(
             '''
@@ -66,13 +65,12 @@ def obtener_evaluacion_por_id(evaluacion_id):
             (evaluacion_id,)
         )
         return cursor.fetchone()
-    except Exception as e:
+    except psycopg2.Error as e:
         logger.error(f'Error al obtener evaluacion {evaluacion_id}: {e}')
         return None
     finally:
         cursor.close()
         conn.close()
-
 
 def guardar_evaluacion_bd(datos):
     conn = get_connection()
@@ -82,6 +80,7 @@ def guardar_evaluacion_bd(datos):
             '''
             INSERT INTO evaluaciones (tipo_id, curso_id, nombre, fecha, peso, descripcion)
             VALUES (%s, %s, %s, %s, %s, %s)
+            RETURNING evaluacion_id
             ''',
             (
                 datos.get('tipo_id'),
@@ -92,17 +91,16 @@ def guardar_evaluacion_bd(datos):
                 datos.get('descripcion')
             )
         )
+        nuevo_id = cursor.fetchone()[0]
         conn.commit()
-        nuevo_id = cursor.lastrowid
         return obtener_evaluacion_por_id(nuevo_id)
-    except Exception as e:
+    except psycopg2.Error as e:
         conn.rollback()
         logger.error(f'Error al guardar evaluacion: {e}')
         return None
     finally:
         cursor.close()
         conn.close()
-
 
 def modificar_evaluacion_bd(evaluacion_id, datos):
     conn = get_connection()
@@ -127,14 +125,13 @@ def modificar_evaluacion_bd(evaluacion_id, datos):
         )
         conn.commit()
         return obtener_evaluacion_por_id(evaluacion_id)
-    except Exception as e:
+    except psycopg2.Error as e:
         conn.rollback()
         logger.error(f'Error al modificar evaluacion {evaluacion_id}: {e}')
         return None
     finally:
         cursor.close()
         conn.close()
-
 
 def borrar_evaluacion_bd(evaluacion_id):
     conn = get_connection()
@@ -146,7 +143,7 @@ def borrar_evaluacion_bd(evaluacion_id):
         )
         conn.commit()
         return True
-    except Exception as e:
+    except psycopg2.Error as e:
         conn.rollback()
         logger.error(f'Error al borrar evaluacion {evaluacion_id}: {e}')
         return False
