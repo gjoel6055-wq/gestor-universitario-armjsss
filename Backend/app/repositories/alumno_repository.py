@@ -1,6 +1,7 @@
 from app.db import get_connection, RealDictCursor
 import psycopg2
 
+
 def obtener_todos_los_alumnos():
     conn = get_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -26,6 +27,7 @@ def obtener_todos_los_alumnos():
         cursor.close()
         conn.close()
 
+
 def buscar_alumno_por_padron(padron):
     conn = get_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -50,6 +52,7 @@ def buscar_alumno_por_padron(padron):
     finally:
         cursor.close()
         conn.close()
+
 
 def crear_alumno_en_bd(padron, nombre, apellido, email, password_hash, abandono=False):
     conn = get_connection()
@@ -85,6 +88,7 @@ def crear_alumno_en_bd(padron, nombre, apellido, email, password_hash, abandono=
     finally:
         cursor.close()
         conn.close()
+
 
 def actualizar_alumno_en_bd(padron, nombre=None, apellido=None, email=None, password_hash=None, abandono=None, cursos=None):
     alumno = buscar_alumno_por_padron(padron)
@@ -139,6 +143,7 @@ def actualizar_alumno_en_bd(padron, nombre=None, apellido=None, email=None, pass
         cursor.close()
         conn.close()
 
+
 def eliminar_alumno_en_bd(padron):
     alumno = buscar_alumno_por_padron(padron)
     if alumno is None:
@@ -158,6 +163,7 @@ def eliminar_alumno_en_bd(padron):
         cursor.close()
         conn.close()
 
+
 def obtener_cursos_del_alumno(padron):
     conn = get_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -174,6 +180,41 @@ def obtener_cursos_del_alumno(padron):
     except psycopg2.Error as e:
         print(f'Error al obtener cursos del alumno {padron}: {e}')
         return []
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def obtener_cursos_de_varios_alumnos(padrones):
+    """
+    Trae los cursos de una lista de padrones en una sola query,
+    evitando abrir una conexión nueva por cada alumno (patrón N+1).
+    Devuelve un dict {padron: [cursos]}.
+    """
+    if not padrones:
+        return {}
+
+    conn = get_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        query = '''
+            SELECT ac.padron, c.curso_id, c.nombre, c.cuatrimestre, c.anio, c.descripcion
+            FROM alumnos_cursos ac
+            JOIN cursos c ON ac.curso_id = c.curso_id
+            WHERE ac.padron = ANY(%s) AND c.deleted_at IS NULL
+            ORDER BY c.anio DESC, c.cuatrimestre DESC
+        '''
+        cursor.execute(query, (list(padrones),))
+        filas = cursor.fetchall() or []
+
+        resultado = {padron: [] for padron in padrones}
+        for fila in filas:
+            padron = fila.pop('padron')
+            resultado[padron].append(fila)
+        return resultado
+    except psycopg2.Error as e:
+        print(f'Error al obtener cursos de varios alumnos: {e}')
+        return {padron: [] for padron in padrones}
     finally:
         cursor.close()
         conn.close()
