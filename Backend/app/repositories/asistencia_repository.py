@@ -4,6 +4,7 @@ import psycopg2
 import logging
 logger = logging.getLogger(__name__)
 
+
 def crear_nueva_asistencia(padron, fecha, qr_token, fecha_expiraicon):
     conn = get_connection()
     cursor = conn.cursor()
@@ -24,17 +25,18 @@ def crear_nueva_asistencia(padron, fecha, qr_token, fecha_expiraicon):
         cursor.close()
         conn.close()
 
+
 def registrar_asistencia(qr_token):
     conn = get_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     query_validation = "SELECT qr_expiracion, presente FROM asistencias WHERE qr_token = %s"
-    query_registro_asistencia = "UPDATE asistencias SET presente = 1 WHERE qr_token = %s"
+    query_registro_asistencia = "UPDATE asistencias SET presente = true WHERE qr_token = %s"
     try:
         cursor.execute(query_validation, (qr_token,))
         resultado = cursor.fetchone()
         if not resultado:
             return "QR invalido"
-        if resultado['presente'] == 1:
+        if resultado['presente'] is True:
             return "ya presente"
         fecha_expiracion = resultado['qr_expiracion']
         fecha_actual = datetime.now()
@@ -51,6 +53,7 @@ def registrar_asistencia(qr_token):
         cursor.close()
         conn.close()
 
+
 def obtener_alumnos_curso(curso_id):
     conn = get_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -60,7 +63,7 @@ def obtener_alumnos_curso(curso_id):
                 FROM usuarios u
                 JOIN alumnos a ON u.usuario_id = a.usuario_id
                 JOIN alumnos_cursos ac ON a.padron = ac.padron
-                WHERE a.abandono = 0
+                WHERE a.abandono = false
                   AND u.rol = 'alumno'
                   AND ac.curso_id = %s
                 """
@@ -74,6 +77,7 @@ def obtener_alumnos_curso(curso_id):
         cursor.close()
         conn.close()
 
+
 def obtener_asistencias_por_fecha(fecha_consulta):
     conn = get_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -81,7 +85,7 @@ def obtener_asistencias_por_fecha(fecha_consulta):
         query = """
                 SELECT a.padron, u.nombre, u.apellido, u.email, asis.presente
                 FROM usuarios u JOIN alumnos a ON u.usuario_id = a.usuario_id INNER JOIN asistencias asis
-                ON a.padron = asis.padron AND asis.fecha = %s WHERE a.abandono = 0 AND u.rol = 'alumno'
+                ON a.padron = asis.padron AND asis.fecha = %s WHERE a.abandono = false AND u.rol = 'alumno'
                 ORDER BY u.apellido, u.nombre
                 """
         cursor.execute(query, (fecha_consulta,))
@@ -93,6 +97,7 @@ def obtener_asistencias_por_fecha(fecha_consulta):
     finally:
         cursor.close()
         conn.close()
+
 
 def obtener_asistencia_por_token(token):
     conn = get_connection()
